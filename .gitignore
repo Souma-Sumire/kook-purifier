@@ -1,0 +1,19 @@
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Node
+node_modules/
+*.asar
+*.asar.bak
+*.asar.unpacked/
+
+# Version bump
+.version
+
+# IDE
+.vscode/
+
+# Temp
+*.tmp
+*.log
