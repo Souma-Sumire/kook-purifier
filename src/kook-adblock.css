@@ -8,8 +8,8 @@
   display: none !important;
 }
 
-/* --- 弹窗广告（排除确认框、资料卡、昵称修改等系统弹窗） --- */
-body>div>div.chuanyu-modal-container.kaihei-modal-animate:not(.dialog-confirm-mask):not(.dialog-user-profile):not(:has(.dialog-confirm)) {
+/* --- 弹窗广告（排除确认框、资料卡、昵称修改、服务器邀请等系统弹窗） --- */
+body>div>div.chuanyu-modal-container.kaihei-modal-animate:not(.dialog-confirm-mask):not(.dialog-user-profile):not(:has(.dialog-confirm)):not(:has(.guild-invite-modal-box)) {
   display: none !important;
 }
 

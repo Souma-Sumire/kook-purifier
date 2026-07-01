@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.3
+// @version      1.1.7
 // @description  隐藏KOOK网页版广告，替换入场音效
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -92,8 +92,8 @@ s.textContent = `
   display: none !important;
 }
 
-/* --- 弹窗广告（排除确认框、资料卡、昵称修改等系统弹窗） --- */
-body>div>div.chuanyu-modal-container.kaihei-modal-animate:not(.dialog-confirm-mask):not(.dialog-user-profile):not(:has(.dialog-confirm)) {
+/* --- 弹窗广告（排除确认框、资料卡、昵称修改、服务器邀请等系统弹窗） --- */
+body>div>div.chuanyu-modal-container.kaihei-modal-animate:not(.dialog-confirm-mask):not(.dialog-user-profile):not(:has(.dialog-confirm)):not(:has(.guild-invite-modal-box)) {
   display: none !important;
 }
 
