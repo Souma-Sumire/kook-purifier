@@ -85,6 +85,11 @@ log('Injecting enhance script...');
 const enhanceJs = path.join(src, 'src', 'kook-enhance.js');
 if (fs.existsSync(enhanceJs)) fs.copyFileSync(enhanceJs, path.join(buildDir, 'kook-enhance.js'));
 
+// --- Inject no-streamer-mode JS ---
+log('Injecting no-streamer-mode script...');
+const noStreamerJs = path.join(src, 'src', 'kook-no-streamer-mode.js');
+if (fs.existsSync(noStreamerJs)) fs.copyFileSync(noStreamerJs, path.join(buildDir, 'kook-no-streamer-mode.js'));
+
 // --- Patch time format ---
 log('Patching time format in JS bundles...');
 const jsDir = path.join(buildDir, 'static', 'js');
@@ -105,7 +110,7 @@ if (fs.existsSync(jsDir)) {
 
 // --- Modify HTML ---
 log('Modifying HTML entry files...');
-const injectHead = '<link rel="stylesheet" href="/app/kook-adblock.css"><script src="/app/kook-sound.js"></script><script src="/app/kook-enhance.js"></script></head>';
+const injectHead = '<link rel="stylesheet" href="/app/kook-adblock.css"><script src="/app/kook-sound.js"></script><script src="/app/kook-enhance.js"></script><script src="/app/kook-no-streamer-mode.js"></script></head>';
 let htmCount = 0;
 walkDir(buildDir, '.htm', (filePath) => {
   let content = fs.readFileSync(filePath, 'utf8');

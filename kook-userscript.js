@@ -17,6 +17,7 @@ fs.writeFileSync(verFile, nextVer);
 const css = fs.readFileSync(path.join(src, 'src', 'kook-adblock.css'), 'utf8');
 const sound = fs.readFileSync(path.join(src, 'src', 'kook-sound.js'), 'utf8');
 const enhance = fs.readFileSync(path.join(src, 'src', 'kook-enhance.js'), 'utf8');
+const noStreamer = fs.readFileSync(path.join(src, 'src', 'kook-no-streamer-mode.js'), 'utf8');
 
 // strip outer IIFE wrappers and extract inner code
 const inner = (fn) => {
@@ -29,7 +30,7 @@ const meta = `// ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
 // @version      ${nextVer}
-// @description  隐藏KOOK网页版广告，替换入场音效
+// @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
 // @match        https://kookapp.cn/*
@@ -40,7 +41,7 @@ const meta = `// ==UserScript==
 // ==/UserScript==
 `;
 
-const out = meta + `\n(function () {\n"use strict";\n\n${inner(sound)}\n\n${inner(enhance)}\n\nconst s = document.createElement("style");\ns.textContent = \`\n${css}\n\`;\ndocument.head.appendChild(s);\nconsole.log("[KOOK净化]");\n})();\n`;
+const out = meta + `\n(function () {\n"use strict";\n\n${inner(sound)}\n\n${inner(enhance)}\n\n${inner(noStreamer)}\n\nconst s = document.createElement("style");\ns.textContent = \`\n${css}\n\`;\ndocument.head.appendChild(s);\nconsole.log("[KOOK净化]");\n})();\n`;
 
 const dist = path.join(src, 'dist');
 if (!fs.existsSync(dist)) fs.mkdirSync(dist);
