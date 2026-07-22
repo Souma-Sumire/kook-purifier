@@ -232,7 +232,11 @@ div[class*="onboarding"],
 div[class*="-reward-"],
 div[class*="-bonus-"],
 div[class*="mission-"],
-div[class*="quest-"] {
+div[class*="quest-"],
+.khj-drop-toast-layer,
+.khj-drop-toast,
+div[class*="drop-toast"],
+div[class*="khj-drop-toast"] {
   display: none !important;
 }
 
