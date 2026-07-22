@@ -41,4 +41,20 @@
     }
     return origBeacon.apply(navigator, arguments);
   };
+
+  window.addEventListener('keydown', function (e) {
+    var isF12 = e.key === 'F12';
+    var isCtrlShiftI = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i');
+    if (isF12 || isCtrlShiftI) {
+      try {
+        if (window.require) {
+          var electron = window.require('electron');
+          if (electron && electron.ipcRenderer) {
+            electron.ipcRenderer.send('toggle-devtools');
+          }
+        }
+      } catch (_) {}
+    }
+  }, true);
 })();
+

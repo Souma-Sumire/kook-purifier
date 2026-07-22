@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.21
+// @version      1.1.23
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -79,6 +79,21 @@ var blocked = ['hm.baidu.com', 'sentry.kookapp.cn'];
     }
     return origBeacon.apply(navigator, arguments);
   };
+
+  window.addEventListener('keydown', function (e) {
+    var isF12 = e.key === 'F12';
+    var isCtrlShiftI = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i');
+    if (isF12 || isCtrlShiftI) {
+      try {
+        if (window.require) {
+          var electron = window.require('electron');
+          if (electron && electron.ipcRenderer) {
+            electron.ipcRenderer.send('toggle-devtools');
+          }
+        }
+      } catch (_) {}
+    }
+  }, true);
 
 var HIDDEN_PROCESSES = [
     'obs64',

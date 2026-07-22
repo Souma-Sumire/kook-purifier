@@ -68,6 +68,50 @@ if (fs.existsSync(appSrc)) fs.rmSync(appSrc, { recursive: true, force: true });
 copyDirSync(srcBase, appSrc);
 const buildDir = path.join(appSrc, 'webapp', 'build');
 
+// --- Enable DevTools in main process ---
+log('Enabling DevTools in main process...');
+const mainPkgPath = path.join(appSrc, 'package.json');
+if (fs.existsSync(mainPkgPath)) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(mainPkgPath, 'utf8'));
+    const mainEntryRelative = pkg.main || 'index.js';
+    const mainEntryPath = path.join(appSrc, mainEntryRelative);
+    if (fs.existsSync(mainEntryPath)) {
+      let mainContent = fs.readFileSync(mainEntryPath, 'utf8');
+
+      mainContent = mainContent.replace(/devTools\s*:\s*(!1|false)/g, 'devTools: true');
+
+      const devToolsSnippet = `
+try {
+  const { app: _app, BrowserWindow: _BrowserWindow, ipcMain: _ipcMain } = require('electron');
+  _app.on('browser-window-created', (event, win) => {
+    win.webContents.on('before-input-event', (e, input) => {
+      if (input.type === 'keyDown') {
+        const isF12 = input.key === 'F12';
+        const isCtrlShiftI = (input.control || input.meta) && input.shift && (input.key === 'I' || input.key === 'i');
+        if (isF12 || isCtrlShiftI) {
+          win.webContents.toggleDevTools();
+        }
+      }
+    });
+  });
+  if (_ipcMain) {
+    _ipcMain.on('toggle-devtools', (event) => {
+      const win = _BrowserWindow.fromWebContents(event.sender);
+      if (win) win.webContents.toggleDevTools();
+    });
+  }
+} catch (_err) {}
+`;
+      mainContent = devToolsSnippet + '\n' + mainContent;
+      fs.writeFileSync(mainEntryPath, mainContent, 'utf8');
+      log(`  Patched main process entry: ${mainEntryRelative}`);
+    }
+  } catch (e) {
+    warn(`Failed to patch main process: ${e.message}`);
+  }
+}
+
 // --- Inject CSS ---
 log('Injecting adblock CSS...');
 const adblockCss = path.join(src, 'src', 'kook-adblock.css');
