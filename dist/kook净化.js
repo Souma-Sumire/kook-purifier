@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.12
+// @version      1.1.16
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -155,6 +155,8 @@ body>div>div.chuanyu-modal-container.kaihei-modal-animate:not(.dialog-confirm-ma
 
 /* --- 顶部标题栏广告 + 商城入口 + 下载客户端 --- */
 #root>div.win-wapper>div.win-title-bar>div.win-title-inner>div.left>div.khj-entry-tag,
+#root>div.win-wapper>div.win-title-bar>div.win-title-inner>div.left>div.kook-anchor-titlebar-left,
+.kook-anchor-titlebar-left,
 .client-download-tag,
 .title-icon-wrapper {
   display: none !important;
@@ -170,7 +172,13 @@ div.banner-box,
 div.audio-center-promotion,
 div.kbc-banner-wrapper,
 div.mixed-ad-carousel-wrapper,
-.discover-corner-ad-patch {
+.discover-corner-ad-patch,
+.discover-goods-ad,
+.discover-goods-ad-border,
+.discover-goods-ad-img,
+.guide-banner-container,
+.robot-home-dialog-banner,
+.recording-ctrl-panel-banner {
   display: none !important;
 }
 
@@ -181,6 +189,7 @@ div.mixed-ad-carousel-wrapper,
 .promotion-header,
 .promotion-info,
 .promotion-task-item,
+.new-task-block-container,
 .promotion-footer,
 .promotion-button,
 .promotion-icon,
@@ -223,6 +232,9 @@ div[class*="quest-"] {
 .goods-tag,
 .kprop-new-tag,
 .goods-modal,
+.goto-kpropshop,
+.setting-page-shop-panel,
+.setting-page-to-shop,
 .goods-modal__content,
 .goods-modal__content__desc,
 .goods-modal__content__subtitle,
@@ -368,7 +380,9 @@ div[class*="quest-"] {
 .gift-canvas,
 .gift-entry-button,
 .giftButtonClick,
-.dialog-friend-gift-vip {
+.dialog-friend-gift-vip,
+.user-info-card-gift-icon,
+.user-info-card-gift-wrapper {
   display: none !important;
 }
 
@@ -390,15 +404,27 @@ div[class*="quest-"] {
 div.vip-tag,
 .vip-decoration,
 .nitro-badge,
-.premium-indicator {
+.premium-indicator,
+.setting-buy-vip,
+.setting-buy-vip-expire,
+.kpm-vip-modal,
+.kpm-vip-top-parent,
+.kmp_vip_tips,
+.kmp_vip_tips_parent,
+.vip-price-tips,
+.invite-vip-gradient-bg {
   display: none !important;
 }
 
-/* --- 文字渐变色恢复（VIP 功能还原） --- */
-.text-gradient {
+/* --- 文字渐变色恢复（VIP 功能还原，仅针对玩家聊天与在线列表昵称） --- */
+.user-name-info .text-gradient,
+.user-name-top .text-gradient,
+.username .text-gradient,
+.user-name-text.text-gradient {
   color: inherit !important;
   background: none !important;
   -webkit-background-clip: unset !important;
+  background-clip: unset !important;
   -webkit-text-fill-color: unset !important;
 }
 
