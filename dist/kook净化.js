@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.16
+// @version      1.1.21
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -158,20 +158,29 @@ body>div>div.chuanyu-modal-container.kaihei-modal-animate:not(.dialog-confirm-ma
 #root>div.win-wapper>div.win-title-bar>div.win-title-inner>div.left>div.kook-anchor-titlebar-left,
 .kook-anchor-titlebar-left,
 .client-download-tag,
+.desktop-client-download-tip,
+#root>div.win-wapper>div.desktop-client-download-tip,
 .title-icon-wrapper {
   display: none !important;
 }
 
 /* --- 消息区顶部提醒/广告条 --- */
-#root>div.win-wapper>div.app-main-wrapper>div>div.content-wrapper-box.app-content-wrapper>div>div.room-layout>div>div.room-content-left>div.kook-message-header-alert>div {
+.kook-message-header-alert,
+.kook-message-header-alert > div,
+div[class*="message-header-alert"] {
   display: none !important;
 }
 
 /* --- Banner 横幅广告 --- */
-div.banner-box,
-div.audio-center-promotion,
-div.kbc-banner-wrapper,
-div.mixed-ad-carousel-wrapper,
+.banner-box,
+.audio-center-promotion,
+.kbc-banner-wrapper,
+.mixed-ad-carousel-wrapper,
+.mixed-ad-carousel,
+.sdk-ad-container,
+.kook-ad-image,
+[class*="audio-center-promotion"],
+[class*="mixed-ad-carousel"],
 .discover-corner-ad-patch,
 .discover-goods-ad,
 .discover-goods-ad-border,
@@ -437,7 +446,10 @@ div.kook-avatar-frame-static {
 #root>div.win-wapper>div.app-main-wrapper>div:nth-child(3)>div>div.setting-page-nav>div>div>div:nth-child(1)>div:nth-child(3),
 #root>div.win-wapper>div.app-main-wrapper>div:nth-child(3)>div>div.setting-page-nav>div>div>div:nth-child(1)>div:nth-child(6),
 .setting-cdk,
-.setting-cdkey-input {
+.setting-cdkey-input,
+.user-setting-mf-goods-tag,
+.user-setting-mf-mask-nav-group-item:has(.user-setting-mf-goods-tag),
+.user-setting-mf-unread {
   display: none !important;
 }
 
@@ -452,7 +464,9 @@ div.kook-avatar-frame-static {
 }
 
 /* --- 用户菜单推广 + 红点 --- */
-div.user-setting-entry-mask>div>div.bottom-content.menu-background>div.user-setting-menu-list>div:nth-child(1) {
+.user-setting-menu-list > .user-setting-menu-item:nth-child(1),
+.user-setting-menu-list > .user-setting-menu-item:has(.tag),
+.user-setting-menu-list > div:nth-child(1) {
   display: none !important;
 }
 .user-setting-menu-list .red-dot,
