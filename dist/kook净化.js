@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.23
+// @version      1.1.24
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -39,7 +39,32 @@ var patterns = [
     }
   });
 
-var blocked = ['hm.baidu.com', 'sentry.kookapp.cn'];
+var blocked = [
+    // 第三方与自研数据统计/埋点上报
+    'hm.baidu.com',
+    'sentry.kookapp.cn',
+    'sentry.io',
+    'log.kookapp.cn',
+    'errorlog.kookapp.com.cn',
+    'stat.kookapp.cn',
+    'analytics.kookapp.cn',
+    'tracker.kookapp.cn',
+    'order_tracker',
+
+    // API数据收集与日志上报接口
+    '/api/v2/reports',
+    '/api/v2/assets/log',
+    '/api/v3/message/report',
+    '/api/v3/user/report-activity',
+    '/api/v3/mall/box-log',
+
+    // 自动更新与热更新检测
+    '/api/v3/app/version',
+    '/api/v3/app/check-update',
+    '/api/v3/app/hot-update',
+    'hotupdate.kookapp.cn',
+    'update.kookapp.cn'
+  ];
 
   var origFetch = window.fetch;
   window.fetch = function (url, options) {
@@ -163,8 +188,84 @@ s.textContent = `
   display: none !important;
 }
 
-/* --- 弹窗广告（排除确认框、资料卡、昵称修改、服务器邀请等系统弹窗） --- */
-body>div>div.chuanyu-modal-container.kaihei-modal-animate:not(.dialog-confirm-mask):not(.dialog-user-profile):not(:has(.dialog-confirm)):not(:has(.guild-invite-modal-box)) {
+.chuanyu-modal-container:has(.dialog-user-profile),
+.chuanyu-modal-container:has(.user-profile-group),
+.chuanyu-modal-container:has(.dialog-confirm),
+.chuanyu-modal-container:has(.guild-invite-modal-box),
+.khj-modal-container:has(.dialog-user-profile),
+.khj-modal-container:has(.user-profile-group),
+.khj-modal-container:has(.dialog-confirm),
+.dialog-user-profile {
+  display: flex !important;
+}
+
+/* --- 隐藏广告/变现/推广/活动弹窗遮罩及内容 --- */
+.chuanyu-modal-container:has(.promotion-dialog),
+.chuanyu-modal-container:has(.kpm-vip-modal),
+.chuanyu-modal-container:has(.vip-buy-modal),
+.chuanyu-modal-container:has(.vip-promotion-modal),
+.chuanyu-modal-container:has(.goods-modal),
+.chuanyu-modal-container:has(.dialog-payment),
+.chuanyu-modal-container:has(.recharge-modal),
+.chuanyu-modal-container:has(.activity-dialog),
+.chuanyu-modal-container:has(.activity-modal),
+.chuanyu-modal-container:has(.festival-activity-modal),
+.chuanyu-modal-container:has(.voice-quality-eval-modal),
+.chuanyu-modal-container:has(.voice-eval-dialog),
+.chuanyu-modal-container:has(.satisfaction-survey-modal),
+.chuanyu-modal-container:has(.guide-modal),
+.chuanyu-modal-container:has(.download-app-modal),
+.khj-modal-container:has(.promotion-dialog),
+.khj-modal-container:has(.kpm-vip-modal),
+.khj-modal-container:has(.dialog-payment),
+.khj-modal-container:has(.goods-modal),
+.khj-modal-container:has(.activity-dialog),
+.promotion-dialog,
+.kpm-vip-modal,
+.vip-buy-modal,
+.vip-privilege-modal,
+.vip-guide-modal,
+.vip-promotion-modal,
+.dialog-friend-gift-vip,
+.goods-modal,
+.dialog-payment,
+.dialog-payment-goods,
+.recharge-modal,
+.first-recharge-modal,
+.activity-dialog,
+.activity-modal,
+.festival-activity-modal,
+.welfare-modal,
+.welfare-center-modal,
+.sign-in-modal,
+.check-in-modal,
+.guide-modal-container,
+.guide-modal,
+.onboarding-modal,
+.newbie-guide-modal,
+.download-app-modal,
+.download-client-modal,
+.update-notice-modal,
+.kook-update-modal,
+.first-newversion,
+.firstlaunch-newversion,
+.new-version-fix-dialog,
+.update-view,
+[class*="update-modal"],
+[class*="newversion"],
+.voice-quality-eval-modal,
+.voice-quality-evaluation,
+.voice-eval-dialog,
+.voice-call-rating-modal,
+.voice-call-eval,
+.voice-call-feedback,
+.voice-quality-feedback,
+.dialog-voice-quality,
+.dialog-voice-eval,
+.dialog-survey,
+.satisfaction-survey-modal,
+.satisfaction-modal,
+.call-quality-feedback {
   display: none !important;
 }
 
@@ -181,7 +282,7 @@ body>div>div.chuanyu-modal-container.kaihei-modal-animate:not(.dialog-confirm-ma
 
 /* --- 消息区顶部提醒/广告条 --- */
 .kook-message-header-alert,
-.kook-message-header-alert > div,
+.kook-message-header-alert>div,
 div[class*="message-header-alert"] {
   display: none !important;
 }
@@ -410,7 +511,13 @@ div[class*="khj-drop-toast"] {
 .giftButtonClick,
 .dialog-friend-gift-vip,
 .user-info-card-gift-icon,
-.user-info-card-gift-wrapper {
+.user-info-card-gift-wrapper,
+.meme-container-old,
+.meme-container,
+.meme-item-container,
+.meme-item,
+div[class*="meme-container"],
+div[class*="meme-item"] {
   display: none !important;
 }
 
@@ -456,9 +563,88 @@ div.vip-tag,
   -webkit-text-fill-color: unset !important;
 }
 
-/* --- 头像框装饰 --- */
-div.kook-avatar-frame-static {
+/* --- 头像框、铭牌挂件、勋章与资料卡装饰品 --- */
+.kook-avatar-frame-static,
+.kook-avatar-frame-animate,
+.kook-avatar-frame,
+img.kook-avatar-frame-static,
+img.kook-avatar-frame-animate,
+[class*="avatar-frame"],
+[class*="kook-avatar-frame"],
+.user-nameplates-panel,
+.user-info-nameplate,
+.namepalte-item,
+.namepalte-item-animate,
+.namepalte-item-static,
+.nameplate,
+.name-and-nameplate,
+.s_nameplate,
+.kook-nameplate-modal-wrapper,
+.kook-nameplate-modal,
+div[class*="nameplate"],
+div[class*="namepalte"],
+.badge-list,
+.badge-item,
+.badge-more,
+.nitro-badge,
+.guild-voice-badge,
+.icon-badge,
+.invite-client-badge,
+.invite-client-btn-badges,
+.boost-badge,
+div[class*="badge-list"],
+div[class*="badge-item"],
+.vip-decoration,
+.vip-amp,
+.vip-amp-animation,
+.vip-icon,
+.all_vip,
+.show-other-vip,
+.upload-preview-buy-vip,
+.goods-vip,
+.prizes-decorate,
+.kook-prizes-decorate,
+.show_prize,
+.prize-item,
+.prize-level-bg,
+[class*="prizes-decorate"],
+.buff-tag,
+.buff_tag,
+.invite-buff-icon,
+.buff-pro-icon,
+.buff-icon,
+.booster-tag,
+.guild-boost-tag,
+.icon-user_tag,
+.kprop-goods,
+.kprop-scope,
+.kprop-new-tag,
+.button-decorations-kprop,
+.button-decorations-kprop-add,
+.action-prop-list,
+.action-prop-item,
+.action-props-box,
+.goods-prop,
+.prop-image-layer,
+.prop-icon,
+.prop-item,
+.prop-item-img-bg,
+.intimacy-img,
+.intimacy-tag,
+.intimacy-animation,
+.intimacy_kpm {
   display: none !important;
+}
+
+/* --- 亲密关系 (Intimacy) 浮动背景特效移除 --- */
+.user-info-right.intimacy,
+.user-info-right.intimacy_kpm,
+.user-info-right.intimacy-animation,
+.user-list-container .user-item .user-info-right.intimacy,
+.user-list-container .user-item .user-info-right.intimacy_kpm,
+.user-list-container .user-item:hover .user-info-right.intimacy-animation {
+  background-image: none !important;
+  background: transparent !important;
 }
 
 /* --- 设置页推广入口 --- */
@@ -476,6 +662,7 @@ div.kook-avatar-frame-static {
 .entry-list>.entry-line {
   display: none !important;
 }
+
 .entry-list>.entry-line:nth-child(1),
 .entry-list>.entry-line:nth-child(2),
 .entry-list>.entry-line:nth-child(4) {
@@ -483,11 +670,12 @@ div.kook-avatar-frame-static {
 }
 
 /* --- 用户菜单推广 + 红点 --- */
-.user-setting-menu-list > .user-setting-menu-item:nth-child(1),
-.user-setting-menu-list > .user-setting-menu-item:has(.tag),
-.user-setting-menu-list > div:nth-child(1) {
+.user-setting-menu-list>.user-setting-menu-item:nth-child(1),
+.user-setting-menu-list>.user-setting-menu-item:has(.tag),
+.user-setting-menu-list>div:nth-child(1) {
   display: none !important;
 }
+
 .user-setting-menu-list .red-dot,
 .user-setting-menu-list .badge,
 .user-setting-menu-list [class*="dot"],
@@ -546,7 +734,6 @@ div.friend-list-ad-banner,
 .custom-activity-header-add-btn {
   display: none !important;
 }
-
 `;
 document.head.appendChild(s);
 console.log("[KOOK净化]");
