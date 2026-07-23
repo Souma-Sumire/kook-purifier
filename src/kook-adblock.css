@@ -423,8 +423,23 @@ div[class*="badge-item"],
 .prop-image-layer,
 .prop-icon,
 .prop-item,
-.prop-item-img-bg {
+.prop-item-img-bg,
+.intimacy-img,
+.intimacy-tag,
+.intimacy-animation,
+.intimacy_kpm {
   display: none !important;
+}
+
+/* --- 亲密关系 (Intimacy) 浮动背景特效移除 --- */
+.user-info-right.intimacy,
+.user-info-right.intimacy_kpm,
+.user-info-right.intimacy-animation,
+.user-list-container .user-item .user-info-right.intimacy,
+.user-list-container .user-item .user-info-right.intimacy_kpm,
+.user-list-container .user-item:hover .user-info-right.intimacy-animation {
+  background-image: none !important;
+  background: transparent !important;
 }
 
 /* --- 设置页推广入口 --- */
