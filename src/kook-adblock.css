@@ -464,7 +464,10 @@ div[class*="badge-item"],
 .intimacy-img,
 .intimacy-tag,
 .intimacy-animation,
-.intimacy_kpm {
+.intimacy_kpm,
+.user-banner,
+.user-banner-shade,
+div[class*="user-banner"] {
   display: none !important;
 }
 
