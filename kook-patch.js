@@ -134,11 +134,6 @@ if (!fs.existsSync(adblockCss)) err('src/kook-adblock.css not found!');
 fs.copyFileSync(adblockCss, path.join(buildDir, 'kook-adblock.css'));
 log('Adblock CSS deployed');
 
-// --- Inject sound JS ---
-log('Injecting sound replacement...');
-const soundJs = path.join(src, 'src', 'kook-sound.js');
-if (fs.existsSync(soundJs)) fs.copyFileSync(soundJs, path.join(buildDir, 'kook-sound.js'));
-
 // --- Inject enhance JS ---
 log('Injecting enhance script...');
 const enhanceJs = path.join(src, 'src', 'kook-enhance.js');
@@ -149,27 +144,9 @@ log('Injecting no-streamer-mode script...');
 const noStreamerJs = path.join(src, 'src', 'kook-no-streamer-mode.js');
 if (fs.existsSync(noStreamerJs)) fs.copyFileSync(noStreamerJs, path.join(buildDir, 'kook-no-streamer-mode.js'));
 
-// --- Patch time format ---
-log('Patching time format in JS bundles...');
-const jsDir = path.join(buildDir, 'static', 'js');
-if (fs.existsSync(jsDir)) {
-  walkDir(jsDir, '.js', (filePath) => {
-    let content = fs.readFileSync(filePath, 'utf8');
-    if (content.includes('.format("hh:mm")') || content.includes('.format("HH:mm")')) {
-      const patched = content
-        .replace(/\.format\("hh:mm"\)/g, '.format("hh:mm:ss")')
-        .replace(/\.format\("HH:mm"\)/g, '.format("HH:mm:ss")');
-      if (patched !== content) {
-        fs.writeFileSync(filePath, patched);
-        log(`  Patched: ${path.basename(filePath)}`);
-      }
-    }
-  });
-}
-
 // --- Modify HTML ---
 log('Modifying HTML entry files...');
-const injectHead = '<link rel="stylesheet" href="/app/kook-adblock.css"><script src="/app/kook-sound.js"></script><script src="/app/kook-enhance.js"></script><script src="/app/kook-no-streamer-mode.js"></script></head>';
+const injectHead = '<link rel="stylesheet" href="/app/kook-adblock.css"><script src="/app/kook-enhance.js"></script><script src="/app/kook-no-streamer-mode.js"></script></head>';
 let htmCount = 0;
 walkDir(buildDir, '.htm', (filePath) => {
   let content = fs.readFileSync(filePath, 'utf8');

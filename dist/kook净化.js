@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.24
+// @version      1.1.26
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -14,30 +14,6 @@
 
 (function () {
 "use strict";
-
-var patterns = [
-    /img\.kookapp\.cn\/assets\/item\/resources\/.+\.mp3/,
-    /resources\/.+_notifications?_.+\.mp3/
-  ];
-  var OriginalAudio = Audio;
-
-  window.Audio = new Proxy(OriginalAudio, {
-    construct: function (target, args) {
-      var audio = new target(args[0]);
-      var originalPlay = audio.play;
-
-      audio.play = function () {
-        try {
-          if (patterns.some(function (re) { return re.test(audio.src); })) {
-            audio.src = 'https://static.kookapp.cn/app/assets/audio/user-join.mp3';
-          }
-        } catch (e) {}
-        return originalPlay.apply(audio, arguments);
-      };
-
-      return audio;
-    }
-  });
 
 var blocked = [
     // 第三方与自研数据统计/埋点上报
@@ -66,18 +42,60 @@ var blocked = [
     'update.kookapp.cn'
   ];
 
+  // 净化 API 数据结构中的 VIP / 挂件 / 铭牌 状态
+  function purifyData(data) {
+    if (!data || typeof data !== 'object') return data;
+    if (Array.isArray(data)) {
+      for (var i = 0; i < data.length; i++) {
+        purifyData(data[i]);
+      }
+    } else {
+      if ('is_vip' in data) data.is_vip = 0;
+      if ('vip' in data && typeof data.vip === 'number') data.vip = 0;
+      if ('vip_type' in data) data.vip_type = 0;
+      if ('vip_avatar' in data) data.vip_avatar = 0;
+      if ('vip_buff' in data) data.vip_buff = 0;
+      if ('nameplate' in data) data.nameplate = null;
+      if ('decorations' in data) data.decorations = null;
+      for (var k in data) {
+        if (Object.prototype.hasOwnProperty.call(data, k) && typeof data[k] === 'object') {
+          purifyData(data[k]);
+        }
+      }
+    }
+    return data;
+  }
+
+  // Hook Fetch 接口
   var origFetch = window.fetch;
   window.fetch = function (url, options) {
     var s = typeof url === 'string' ? url : (url && url.url) || '';
     if (blocked.some(function (d) { return s.indexOf(d) !== -1; })) {
       return Promise.resolve(new Response('', { status: 200 }));
     }
-    return origFetch.apply(this, arguments);
+    return origFetch.apply(this, arguments).then(function (res) {
+      if (s.indexOf('/api/') !== -1) {
+        var clone = res.clone();
+        return clone.json().then(function (json) {
+          purifyData(json);
+          return new Response(JSON.stringify(json), {
+            status: res.status,
+            statusText: res.statusText,
+            headers: res.headers
+          });
+        }).catch(function () {
+          return res;
+        });
+      }
+      return res;
+    });
   };
 
+  // Hook XMLHttpRequest
   var origOpen = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function (method, url) {
-    if (blocked.some(function (d) { return (url || '').indexOf(d) !== -1; })) {
+    this._url = url || '';
+    if (blocked.some(function (d) { return (this._url).indexOf(d) !== -1; })) {
       this._blocked = true;
     }
     return origOpen.apply(this, arguments);
@@ -94,8 +112,139 @@ var blocked = [
       }, 0);
       return;
     }
+    if (this._url.indexOf('/api/') !== -1) {
+      var xhrSelf = this;
+      var origOnReady = xhrSelf.onreadystatechange;
+      xhrSelf.onreadystatechange = function () {
+        if (xhrSelf.readyState === 4 && xhrSelf.status === 200 && xhrSelf.responseText) {
+          try {
+            var json = JSON.parse(xhrSelf.responseText);
+            purifyData(json);
+            Object.defineProperty(xhrSelf, 'responseText', { value: JSON.stringify(json) });
+            Object.defineProperty(xhrSelf, 'response', { value: JSON.stringify(json) });
+          } catch (_) { }
+        }
+        if (origOnReady) origOnReady.apply(this, arguments);
+      };
+    }
     return origSend.apply(this, arguments);
   };
+
+  // 移除 text-gradient class, VIP class 及内联 Style
+  function cleanVipDom(el) {
+    if (!el || el.nodeType !== 1) return;
+    if (el.classList) {
+      if (el.classList.contains('text-gradient')) {
+        el.classList.remove('text-gradient');
+        el.style.backgroundImage = 'none';
+        el.style.webkitTextFillColor = 'initial';
+        el.style.backgroundClip = 'initial';
+      }
+      if (el.classList.contains('kook-avatar-is_vip')) el.classList.remove('kook-avatar-is_vip');
+      if (el.classList.contains('kook-avatar-vip_avatar')) el.classList.remove('kook-avatar-vip_avatar');
+    }
+    var nodes = el.querySelectorAll ? el.querySelectorAll('.text-gradient, .kook-avatar-is_vip, .kook-avatar-vip_avatar') : [];
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      if (node.classList.contains('text-gradient')) {
+        node.classList.remove('text-gradient');
+        node.style.backgroundImage = 'none';
+        node.style.webkitTextFillColor = 'initial';
+        node.style.backgroundClip = 'initial';
+      }
+      node.classList.remove('kook-avatar-is_vip');
+      node.classList.remove('kook-avatar-vip_avatar');
+    }
+  }
+
+  var observer = new MutationObserver(function (mutations) {
+    for (var i = 0; i < mutations.length; i++) {
+      var added = mutations[i].addedNodes;
+      for (var j = 0; j < added.length; j++) {
+        cleanVipDom(added[j]);
+      }
+    }
+  });
+
+  if (document.body) {
+    observer.observe(document.body, { childList: true, subtree: true });
+    cleanVipDom(document.body);
+  } else {
+    document.addEventListener('DOMContentLoaded', function () {
+      observer.observe(document.body, { childList: true, subtree: true });
+      cleanVipDom(document.body);
+    });
+  }
+
+  // WebSocket 实时长连接数据清洗 Hook
+  var OrigWS = window.WebSocket;
+  window.WebSocket = function (url, protocols) {
+    var ws = protocols ? new OrigWS(url, protocols) : new OrigWS(url);
+    var origAddEventListener = ws.addEventListener;
+    ws.addEventListener = function (type, listener, options) {
+      if (type === 'message') {
+        var wrappedListener = function (e) {
+          if (e && typeof e.data === 'string' && e.data.charAt(0) === '{') {
+            try {
+              var json = JSON.parse(e.data);
+              purifyData(json);
+              var newEvent = new MessageEvent('message', {
+                data: JSON.stringify(json),
+                origin: e.origin,
+                lastEventId: e.lastEventId,
+                source: e.source,
+                ports: e.ports
+              });
+              return listener.call(this, newEvent);
+            } catch (_) {}
+          }
+          return listener.apply(this, arguments);
+        };
+        return origAddEventListener.call(this, type, wrappedListener, options);
+      }
+      return origAddEventListener.apply(this, arguments);
+    };
+    return ws;
+  };
+  window.WebSocket.prototype = OrigWS.prototype;
+
+  // Moment.js 时间格式化原型 Hook（精准秒级时间显示）
+  function hookMoment() {
+    if (window.moment && window.moment.fn && !window.moment.fn._patched) {
+      var origFormat = window.moment.fn.format;
+      window.moment.fn.format = function (fmt) {
+        if (typeof fmt === 'string') {
+          fmt = fmt.replace(/HH:mm(?!:ss)/g, 'HH:mm:ss').replace(/hh:mm(?!:ss)/g, 'hh:mm:ss');
+        }
+        return origFormat.call(this, fmt);
+      };
+      window.moment.fn._patched = true;
+    }
+  }
+  hookMoment();
+  setInterval(hookMoment, 1000);
+
+  // 个性化/装扮提示音 Hook（还原为默认提示音）
+  var soundPatterns = [
+    /img\.kookapp\.cn\/assets\/item\/resources\/.+\.mp3/,
+    /resources\/.+_notifications?_.+\.mp3/
+  ];
+  var OrigAudio = window.Audio;
+  window.Audio = new Proxy(OrigAudio, {
+    construct: function (target, args) {
+      var audio = new target(args[0]);
+      var origPlay = audio.play;
+      audio.play = function () {
+        try {
+          if (soundPatterns.some(function (re) { return re.test(audio.src); })) {
+            audio.src = 'https://static.kookapp.cn/app/assets/audio/user-join.mp3';
+          }
+        } catch (_) {}
+        return origPlay.apply(audio, arguments);
+      };
+      return audio;
+    }
+  });
 
   var origBeacon = navigator.sendBeacon;
   navigator.sendBeacon = function (url, data) {
@@ -116,29 +265,11 @@ var blocked = [
             electron.ipcRenderer.send('toggle-devtools');
           }
         }
-      } catch (_) {}
+      } catch (_) { }
     }
   }, true);
 
-var HIDDEN_PROCESSES = [
-    'obs64',
-    'livehime',
-  ];
-
-  function shouldHide(processName) {
-    if (!processName) return false;
-    var name = processName.toLowerCase().replace(/\.exe$/i, '');
-    return HIDDEN_PROCESSES.indexOf(name) !== -1;
-  }
-
-  function filterProcessList(list) {
-    if (!Array.isArray(list)) return list;
-    return list.filter(function (item) {
-      return !shouldHide(item.ProcessName || item.process_name || item.name || '');
-    });
-  }
-
-  var patchRetry = 0;
+var patchRetry = 0;
   function patchTasklist() {
     var kaiheila = window.Kaiheila;
     if (!kaiheila || !kaiheila.tasklist) {
@@ -151,30 +282,50 @@ var HIDDEN_PROCESSES = [
     if (tasklist.__kookPurifierPatched) return;
     tasklist.__kookPurifierPatched = true;
 
-    var origEmit = tasklist.emitter.emit.bind(tasklist.emitter);
-    tasklist.emitter.emit = function (event) {
-      if (event === 'tasklist') {
-        var args = Array.prototype.slice.call(arguments);
-        if (Array.isArray(args[1])) {
-          args[1] = filterProcessList(args[1]);
+    if (tasklist.emitter && tasklist.emitter.emit) {
+      var origEmit = tasklist.emitter.emit.bind(tasklist.emitter);
+      tasklist.emitter.emit = function (event) {
+        if (event === 'tasklist') {
+          var args = Array.prototype.slice.call(arguments);
+          args[1] = [];
+          return origEmit.apply(null, args);
         }
-        return origEmit.apply(null, args);
-      }
-      return origEmit.apply(null, arguments);
-    };
+        return origEmit.apply(null, arguments);
+      };
+    }
 
-    var origGetTaskListInfo = tasklist.getTaskListInfo;
-    tasklist.getTaskListInfo = function () {
-      return origGetTaskListInfo.apply(tasklist, arguments).then(filterProcessList);
-    };
+    if (tasklist.getTaskListInfo) {
+      tasklist.getTaskListInfo = function () {
+        return Promise.resolve([]);
+      };
+    }
 
-    var origGetSimple = tasklist.getSimpleTaskListInfo;
-    tasklist.getSimpleTaskListInfo = function () {
-      return origGetSimple.apply(tasklist, arguments).then(filterProcessList);
-    };
+    if (tasklist.getSimpleTaskListInfo) {
+      tasklist.getSimpleTaskListInfo = function () {
+        return Promise.resolve([]);
+      };
+    }
   }
 
   patchTasklist();
+
+  // 拦截 Electron IPC 进程查询通道，直接返回空数据
+  try {
+    if (window.require) {
+      var electron = window.require('electron');
+      if (electron && electron.ipcRenderer) {
+        var origInvoke = electron.ipcRenderer.invoke;
+        if (origInvoke) {
+          electron.ipcRenderer.invoke = function (channel) {
+            if (channel === 'get-tasklist' || channel === 'get-process-list') {
+              return Promise.resolve([]);
+            }
+            return origInvoke.apply(this, arguments);
+          };
+        }
+      }
+    }
+  } catch (_) {}
 
 const s = document.createElement("style");
 s.textContent = `
@@ -289,6 +440,9 @@ div[class*="message-header-alert"] {
 
 /* --- Banner 横幅广告 --- */
 .banner-box,
+.guild-banner-box,
+.guild-channel-banner-placeholder-box,
+div[class*="guild-banner-box"],
 .audio-center-promotion,
 .kbc-banner-wrapper,
 .mixed-ad-carousel-wrapper,
@@ -551,17 +705,6 @@ div.vip-tag,
   display: none !important;
 }
 
-/* --- 文字渐变色恢复（VIP 功能还原，仅针对玩家聊天与在线列表昵称） --- */
-.user-name-info .text-gradient,
-.user-name-top .text-gradient,
-.username .text-gradient,
-.user-name-text.text-gradient {
-  color: inherit !important;
-  background: none !important;
-  -webkit-background-clip: unset !important;
-  background-clip: unset !important;
-  -webkit-text-fill-color: unset !important;
-}
 
 /* --- 头像框、铭牌挂件、勋章与资料卡装饰品 --- */
 .kook-avatar-frame-static,
@@ -571,6 +714,10 @@ img.kook-avatar-frame-static,
 img.kook-avatar-frame-animate,
 [class*="avatar-frame"],
 [class*="kook-avatar-frame"],
+.left-munu-guild-avatar,
+.left-menu-guild-avatar,
+div[class*="guild-avatar"],
+div[class*="left-munu-guild-avatar"],
 .user-nameplates-panel,
 .user-info-nameplate,
 .namepalte-item,
@@ -583,6 +730,9 @@ img.kook-avatar-frame-animate,
 .kook-nameplate-modal,
 div[class*="nameplate"],
 div[class*="namepalte"],
+img[src*="nameplate"],
+img[src*="s_nameplate"],
+.user-name-info>img:not(.emoji),
 .badge-list,
 .badge-item,
 .badge-more,
@@ -610,6 +760,8 @@ div[class*="badge-item"],
 [class*="prizes-decorate"],
 .buff-tag,
 .buff_tag,
+.buff-persona-tips,
+[class*="buff-persona-tips"],
 .invite-buff-icon,
 .buff-pro-icon,
 .buff-icon,
@@ -631,8 +783,9 @@ div[class*="badge-item"],
 .prop-item-img-bg,
 .intimacy-img,
 .intimacy-tag,
-.intimacy-animation,
-.intimacy_kpm {
+.user-banner,
+.user-banner-shade,
+div[class*="user-banner"] {
   display: none !important;
 }
 

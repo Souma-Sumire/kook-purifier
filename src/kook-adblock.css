@@ -374,17 +374,6 @@ div.vip-tag,
   display: none !important;
 }
 
-/* --- 文字渐变色恢复（VIP 功能还原，仅针对玩家聊天与在线列表昵称） --- */
-.user-name-info .text-gradient,
-.user-name-top .text-gradient,
-.username .text-gradient,
-.user-name-text.text-gradient {
-  color: inherit !important;
-  background: none !important;
-  -webkit-background-clip: unset !important;
-  background-clip: unset !important;
-  -webkit-text-fill-color: unset !important;
-}
 
 /* --- 头像框、铭牌挂件、勋章与资料卡装饰品 --- */
 .kook-avatar-frame-static,
@@ -412,7 +401,7 @@ div[class*="nameplate"],
 div[class*="namepalte"],
 img[src*="nameplate"],
 img[src*="s_nameplate"],
-.user-name-info > img:not(.emoji),
+.user-name-info>img:not(.emoji),
 .badge-list,
 .badge-item,
 .badge-more,
@@ -463,8 +452,6 @@ div[class*="badge-item"],
 .prop-item-img-bg,
 .intimacy-img,
 .intimacy-tag,
-.intimacy-animation,
-.intimacy_kpm,
 .user-banner,
 .user-banner-shade,
 div[class*="user-banner"] {

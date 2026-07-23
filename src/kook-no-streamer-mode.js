@@ -1,24 +1,6 @@
 (function () {
   'use strict';
 
-  var HIDDEN_PROCESSES = [
-    'obs64',
-    'livehime',
-  ];
-
-  function shouldHide(processName) {
-    if (!processName) return false;
-    var name = processName.toLowerCase().replace(/\.exe$/i, '');
-    return HIDDEN_PROCESSES.indexOf(name) !== -1;
-  }
-
-  function filterProcessList(list) {
-    if (!Array.isArray(list)) return list;
-    return list.filter(function (item) {
-      return !shouldHide(item.ProcessName || item.process_name || item.name || '');
-    });
-  }
-
   var patchRetry = 0;
   function patchTasklist() {
     var kaiheila = window.Kaiheila;
@@ -32,28 +14,48 @@
     if (tasklist.__kookPurifierPatched) return;
     tasklist.__kookPurifierPatched = true;
 
-    var origEmit = tasklist.emitter.emit.bind(tasklist.emitter);
-    tasklist.emitter.emit = function (event) {
-      if (event === 'tasklist') {
-        var args = Array.prototype.slice.call(arguments);
-        if (Array.isArray(args[1])) {
-          args[1] = filterProcessList(args[1]);
+    if (tasklist.emitter && tasklist.emitter.emit) {
+      var origEmit = tasklist.emitter.emit.bind(tasklist.emitter);
+      tasklist.emitter.emit = function (event) {
+        if (event === 'tasklist') {
+          var args = Array.prototype.slice.call(arguments);
+          args[1] = [];
+          return origEmit.apply(null, args);
         }
-        return origEmit.apply(null, args);
-      }
-      return origEmit.apply(null, arguments);
-    };
+        return origEmit.apply(null, arguments);
+      };
+    }
 
-    var origGetTaskListInfo = tasklist.getTaskListInfo;
-    tasklist.getTaskListInfo = function () {
-      return origGetTaskListInfo.apply(tasklist, arguments).then(filterProcessList);
-    };
+    if (tasklist.getTaskListInfo) {
+      tasklist.getTaskListInfo = function () {
+        return Promise.resolve([]);
+      };
+    }
 
-    var origGetSimple = tasklist.getSimpleTaskListInfo;
-    tasklist.getSimpleTaskListInfo = function () {
-      return origGetSimple.apply(tasklist, arguments).then(filterProcessList);
-    };
+    if (tasklist.getSimpleTaskListInfo) {
+      tasklist.getSimpleTaskListInfo = function () {
+        return Promise.resolve([]);
+      };
+    }
   }
 
   patchTasklist();
+
+  // 拦截 Electron IPC 进程查询通道，直接返回空数据
+  try {
+    if (window.require) {
+      var electron = window.require('electron');
+      if (electron && electron.ipcRenderer) {
+        var origInvoke = electron.ipcRenderer.invoke;
+        if (origInvoke) {
+          electron.ipcRenderer.invoke = function (channel) {
+            if (channel === 'get-tasklist' || channel === 'get-process-list') {
+              return Promise.resolve([]);
+            }
+            return origInvoke.apply(this, arguments);
+          };
+        }
+      }
+    }
+  } catch (_) {}
 })();
