@@ -95,7 +95,7 @@
 
 /* --- 消息区顶部提醒/广告条 --- */
 .kook-message-header-alert,
-.kook-message-header-alert > div,
+.kook-message-header-alert>div,
 div[class*="message-header-alert"] {
   display: none !important;
 }
@@ -376,13 +376,54 @@ div.vip-tag,
   -webkit-text-fill-color: unset !important;
 }
 
+/* --- 头像框、铭牌挂件、勋章与资料卡装饰品 --- */
 .kook-avatar-frame-static,
 .kook-avatar-frame-animate,
 .kook-avatar-frame,
 img.kook-avatar-frame-static,
 img.kook-avatar-frame-animate,
 [class*="avatar-frame"],
-[class*="kook-avatar-frame"] {
+[class*="kook-avatar-frame"],
+.user-nameplates-panel,
+.user-info-nameplate,
+.namepalte-item,
+.namepalte-item-animate,
+.namepalte-item-static,
+.nameplate,
+.name-and-nameplate,
+.s_nameplate,
+.kook-nameplate-modal-wrapper,
+.kook-nameplate-modal,
+div[class*="nameplate"],
+div[class*="namepalte"],
+.badge-list,
+.badge-item,
+.badge-more,
+.nitro-badge,
+.guild-voice-badge,
+.icon-badge,
+.invite-client-badge,
+.invite-client-btn-badges,
+.boost-badge,
+div[class*="badge-list"],
+div[class*="badge-item"],
+.vip-decoration,
+.prizes-decorate,
+.kook-prizes-decorate,
+[class*="prizes-decorate"],
+.kprop-goods,
+.kprop-scope,
+.kprop-new-tag,
+.button-decorations-kprop,
+.button-decorations-kprop-add,
+.action-prop-list,
+.action-prop-item,
+.action-props-box,
+.goods-prop,
+.prop-image-layer,
+.prop-icon,
+.prop-item,
+.prop-item-img-bg {
   display: none !important;
 }
 
@@ -401,6 +442,7 @@ img.kook-avatar-frame-animate,
 .entry-list>.entry-line {
   display: none !important;
 }
+
 .entry-list>.entry-line:nth-child(1),
 .entry-list>.entry-line:nth-child(2),
 .entry-list>.entry-line:nth-child(4) {
@@ -408,11 +450,12 @@ img.kook-avatar-frame-animate,
 }
 
 /* --- 用户菜单推广 + 红点 --- */
-.user-setting-menu-list > .user-setting-menu-item:nth-child(1),
-.user-setting-menu-list > .user-setting-menu-item:has(.tag),
-.user-setting-menu-list > div:nth-child(1) {
+.user-setting-menu-list>.user-setting-menu-item:nth-child(1),
+.user-setting-menu-list>.user-setting-menu-item:has(.tag),
+.user-setting-menu-list>div:nth-child(1) {
   display: none !important;
 }
+
 .user-setting-menu-list .red-dot,
 .user-setting-menu-list .badge,
 .user-setting-menu-list [class*="dot"],
