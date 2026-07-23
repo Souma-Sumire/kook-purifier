@@ -8,8 +8,77 @@
   display: none !important;
 }
 
-/* --- 弹窗广告（排除确认框、资料卡、昵称修改、服务器邀请等系统弹窗） --- */
-body>div>div.chuanyu-modal-container.kaihei-modal-animate:not(.dialog-confirm-mask):not(.dialog-user-profile):not(:has(.dialog-confirm)):not(:has(.guild-invite-modal-box)) {
+.chuanyu-modal-container:has(.dialog-user-profile),
+.chuanyu-modal-container:has(.user-profile-group),
+.chuanyu-modal-container:has(.dialog-confirm),
+.chuanyu-modal-container:has(.guild-invite-modal-box),
+.khj-modal-container:has(.dialog-user-profile),
+.khj-modal-container:has(.user-profile-group),
+.khj-modal-container:has(.dialog-confirm),
+.dialog-user-profile {
+  display: flex !important;
+}
+
+/* --- 隐藏广告/变现/推广/活动弹窗遮罩及内容 --- */
+.chuanyu-modal-container:has(.promotion-dialog),
+.chuanyu-modal-container:has(.kpm-vip-modal),
+.chuanyu-modal-container:has(.vip-buy-modal),
+.chuanyu-modal-container:has(.vip-promotion-modal),
+.chuanyu-modal-container:has(.goods-modal),
+.chuanyu-modal-container:has(.dialog-payment),
+.chuanyu-modal-container:has(.recharge-modal),
+.chuanyu-modal-container:has(.activity-dialog),
+.chuanyu-modal-container:has(.activity-modal),
+.chuanyu-modal-container:has(.festival-activity-modal),
+.chuanyu-modal-container:has(.voice-quality-eval-modal),
+.chuanyu-modal-container:has(.voice-eval-dialog),
+.chuanyu-modal-container:has(.satisfaction-survey-modal),
+.chuanyu-modal-container:has(.guide-modal),
+.chuanyu-modal-container:has(.download-app-modal),
+.khj-modal-container:has(.promotion-dialog),
+.khj-modal-container:has(.kpm-vip-modal),
+.khj-modal-container:has(.dialog-payment),
+.khj-modal-container:has(.goods-modal),
+.khj-modal-container:has(.activity-dialog),
+.promotion-dialog,
+.kpm-vip-modal,
+.vip-buy-modal,
+.vip-privilege-modal,
+.vip-guide-modal,
+.vip-promotion-modal,
+.dialog-friend-gift-vip,
+.goods-modal,
+.dialog-payment,
+.dialog-payment-goods,
+.recharge-modal,
+.first-recharge-modal,
+.activity-dialog,
+.activity-modal,
+.festival-activity-modal,
+.welfare-modal,
+.welfare-center-modal,
+.sign-in-modal,
+.check-in-modal,
+.guide-modal-container,
+.guide-modal,
+.onboarding-modal,
+.newbie-guide-modal,
+.download-app-modal,
+.download-client-modal,
+.update-notice-modal,
+.voice-quality-eval-modal,
+.voice-quality-evaluation,
+.voice-eval-dialog,
+.voice-call-rating-modal,
+.voice-call-eval,
+.voice-call-feedback,
+.voice-quality-feedback,
+.dialog-voice-quality,
+.dialog-voice-eval,
+.dialog-survey,
+.satisfaction-survey-modal,
+.satisfaction-modal,
+.call-quality-feedback {
   display: none !important;
 }
 
@@ -255,7 +324,13 @@ div[class*="khj-drop-toast"] {
 .giftButtonClick,
 .dialog-friend-gift-vip,
 .user-info-card-gift-icon,
-.user-info-card-gift-wrapper {
+.user-info-card-gift-wrapper,
+.meme-container-old,
+.meme-container,
+.meme-item-container,
+.meme-item,
+div[class*="meme-container"],
+div[class*="meme-item"] {
   display: none !important;
 }
 
@@ -301,8 +376,13 @@ div.vip-tag,
   -webkit-text-fill-color: unset !important;
 }
 
-/* --- 头像框装饰 --- */
-div.kook-avatar-frame-static {
+.kook-avatar-frame-static,
+.kook-avatar-frame-animate,
+.kook-avatar-frame,
+img.kook-avatar-frame-static,
+img.kook-avatar-frame-animate,
+[class*="avatar-frame"],
+[class*="kook-avatar-frame"] {
   display: none !important;
 }
 
