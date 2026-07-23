@@ -1,7 +1,32 @@
 (function () {
   'use strict';
 
-  var blocked = ['hm.baidu.com', 'sentry.kookapp.cn'];
+  var blocked = [
+    // 第三方与自研数据统计/埋点上报
+    'hm.baidu.com',
+    'sentry.kookapp.cn',
+    'sentry.io',
+    'log.kookapp.cn',
+    'errorlog.kookapp.com.cn',
+    'stat.kookapp.cn',
+    'analytics.kookapp.cn',
+    'tracker.kookapp.cn',
+    'order_tracker',
+
+    // API数据收集与日志上报接口
+    '/api/v2/reports',
+    '/api/v2/assets/log',
+    '/api/v3/message/report',
+    '/api/v3/user/report-activity',
+    '/api/v3/mall/box-log',
+
+    // 自动更新与热更新检测
+    '/api/v3/app/version',
+    '/api/v3/app/check-update',
+    '/api/v3/app/hot-update',
+    'hotupdate.kookapp.cn',
+    'update.kookapp.cn'
+  ];
 
   var origFetch = window.fetch;
   window.fetch = function (url, options) {

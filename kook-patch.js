@@ -83,7 +83,13 @@ if (fs.existsSync(mainPkgPath)) {
 
       const devToolsSnippet = `
 try {
-  const { app: _app, BrowserWindow: _BrowserWindow, ipcMain: _ipcMain } = require('electron');
+  const { app: _app, BrowserWindow: _BrowserWindow, ipcMain: _ipcMain, autoUpdater: _autoUpdater } = require('electron');
+  
+  if (_autoUpdater) {
+    _autoUpdater.checkForUpdates = () => {};
+    _autoUpdater.quitAndInstall = () => {};
+  }
+
   _app.on('browser-window-created', (event, win) => {
     win.webContents.on('before-input-event', (e, input) => {
       if (input.type === 'keyDown') {
@@ -95,11 +101,20 @@ try {
       }
     });
   });
+
   if (_ipcMain) {
     _ipcMain.on('toggle-devtools', (event) => {
       const win = _BrowserWindow.fromWebContents(event.sender);
       if (win) win.webContents.toggleDevTools();
     });
+    
+    // Disable KOOK AutoUpdate & HotUpdate IPC handlers
+    _ipcMain.handle('check-update-get-config', () => null);
+    _ipcMain.on('check-update-is-updating', (e) => { e.returnValue = false; });
+    _ipcMain.on('autoUpdateInit', () => {});
+    _ipcMain.on('autoUpdateChecking', () => {});
+    _ipcMain.on('autoUpdateDownloading', () => {});
+    _ipcMain.on('autoUpdateCompleted', () => {});
   }
 } catch (_err) {}
 `;
