@@ -45,10 +45,30 @@ if (!fs.existsSync(asarBak)) {
   fs.copyFileSync(asar, asarBak);
   log('Backup saved: app.asar.bak');
 }
+if (fs.existsSync(unpackedDir) && !fs.existsSync(unpackedBackup)) {
+  copyDirSync(unpackedDir, unpackedBackup);
+  log('Backup saved: app.asar.unpacked.bak');
+}
+
+// Ensure app.asar.bak.unpacked exists if extracting from app.asar.bak
+const unpackedAsarBak = path.join(resourcesDir, 'app.asar.bak.unpacked');
+if (!fs.existsSync(unpackedAsarBak)) {
+  if (fs.existsSync(unpackedBackup)) {
+    copyDirSync(unpackedBackup, unpackedAsarBak);
+  } else if (fs.existsSync(unpackedDir)) {
+    copyDirSync(unpackedDir, unpackedAsarBak);
+  }
+}
 
 // --- Extract (cached) ---
-if (!fs.existsSync(srcBase)) {
-  log('Extracting app.asar (first time)...');
+const isBaseValid = fs.existsSync(srcBase) && fs.existsSync(path.join(srcBase, 'webapp', 'build'));
+if (!isBaseValid) {
+  if (fs.existsSync(srcBase)) {
+    log('Cached app-src-base is incomplete/corrupted, re-extracting...');
+    fs.rmSync(srcBase, { recursive: true, force: true });
+  } else {
+    log('Extracting app.asar (first time)...');
+  }
   if (!fs.existsSync(unpackedDir)) {
     if (fs.existsSync(unpackedBackup)) {
       copyDirSync(unpackedBackup, unpackedDir);
@@ -56,7 +76,8 @@ if (!fs.existsSync(srcBase)) {
       fs.mkdirSync(unpackedDir, { recursive: true });
     }
   }
-  execSync(`npx asar extract "${asar}" "${srcBase}"`, { stdio: 'inherit', cwd: resourcesDir });
+  const extractSource = fs.existsSync(asarBak) ? asarBak : asar;
+  execSync(`npx asar extract "${extractSource}" "${srcBase}"`, { stdio: 'inherit', cwd: resourcesDir });
   log('Extract done, cached as app-src-base');
 } else {
   log('Using cached extract: app-src-base');
