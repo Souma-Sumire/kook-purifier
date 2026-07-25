@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.30
+// @version      1.1.31
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -823,6 +823,21 @@ div.friend-list-ad-banner,
 .activity-list-header,
 .custom-activity-header-action,
 .custom-activity-header-add-btn {
+  display: none !important;
+}
+
+/* --- HQ音质引导BUFF充值广告 --- */
+body>div.buff-hq-tooltip {
+  display: none !important;
+}
+
+/* --- 更新提醒 --- */
+#root>div.win-wapper>div.win-title-bar>div.win-title-inner>div.right>div:nth-child(2)>div.win-title-bar-icon.win-download-icon.animate-button.kookiconfont {
+  display: none !important;
+}
+
+/* --- 隐藏语音频道工具箱 --- */
+.console-tools-container {
   display: none !important;
 }
 `;
