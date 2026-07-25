@@ -566,3 +566,8 @@ body>div.buff-hq-tooltip {
 #root>div.win-wapper>div.win-title-bar>div.win-title-inner>div.right>div:nth-child(2)>div.win-title-bar-icon.win-download-icon.animate-button.kookiconfont {
   display: none !important;
 }
+
+/* --- 隐藏语音频道工具箱 --- */
+.console-tools-container {
+  display: none !important;
+}
