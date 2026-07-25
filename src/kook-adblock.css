@@ -556,3 +556,13 @@ div.friend-list-ad-banner,
 .custom-activity-header-add-btn {
   display: none !important;
 }
+
+/* --- HQ音质引导BUFF充值广告 --- */
+body>div.buff-hq-tooltip {
+  display: none !important;
+}
+
+/* --- 更新提醒 --- */
+#root>div.win-wapper>div.win-title-bar>div.win-title-inner>div.right>div:nth-child(2)>div.win-title-bar-icon.win-download-icon.animate-button.kookiconfont {
+  display: none !important;
+}
