@@ -9,14 +9,12 @@ KOOK 客户端去广告、去弹窗净化补丁。
 - 关掉各种烦人的广告和活动弹窗
 - 清掉各种勋章、动效、气泡与头饰挂件
 - 解锁 F12 开发者工具
-- 解锁 OBS / 直播姬挂载检测
+- 绕过 OBS / 直播姬 进程检测
 
 ## 使用方法
 
 1. 下载最新 [Release](https://github.com/Souma-Sumire/kook-purifier/releases)
-1. 退出 KOOK
-1. 打开 `KOOKPurifier.exe`，点击 **“一键应用”**
-1. 启动 KOOK
+1. 打开 `KOOKPurifier.exe`，点击 **“开始净化”**
 
 ## 开发者
 
