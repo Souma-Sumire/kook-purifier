@@ -8,12 +8,26 @@ node_modules/
 *.asar.bak
 *.asar.unpacked/
 
+# C# Build & IDE
+bin/
+obj/
+dist/
+*.pdb
+*.user
+*.suo
+.vs/
+.vscode/
+
+# Temporary / Agent Scratch
+.superpowers/
+docs/superpowers/
+
 # Version bump
 .version
-
-# IDE
-.vscode/
 
 # Temp
 *.tmp
 *.log
+
+# CI / Release
+release-artifacts/

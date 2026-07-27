@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.31
+// @version      1.1.42
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -304,11 +304,19 @@ s.textContent = `
 .chuanyu-modal-container:has(.satisfaction-survey-modal),
 .chuanyu-modal-container:has(.guide-modal),
 .chuanyu-modal-container:has(.download-app-modal),
+.chuanyu-modal-container:has(.first-newversion),
+.chuanyu-modal-container:has(.firstlaunch-newversion),
+.chuanyu-modal-container:has([class*="newversion"]),
 .khj-modal-container:has(.promotion-dialog),
 .khj-modal-container:has(.kpm-vip-modal),
 .khj-modal-container:has(.dialog-payment),
 .khj-modal-container:has(.goods-modal),
 .khj-modal-container:has(.activity-dialog),
+.khj-modal-container:has(.first-newversion),
+.khj-modal-container:has(.firstlaunch-newversion),
+.khj-modal-container:has([class*="newversion"]),
+.guide-banner-container,
+.download-modal,
 .promotion-dialog,
 .kpm-vip-modal,
 .vip-buy-modal,

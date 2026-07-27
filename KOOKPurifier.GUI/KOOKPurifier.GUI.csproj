@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>KOOKPurifier</AssemblyName>
+    <RootNamespace>KOOKPurifier.GUI</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <OutputPath>..\dist\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\src\kook-adblock.css">
+      <Link>Resources\kook-adblock.css</Link>
+      <LogicalName>KOOKPurifier.GUI.Resources.kook-adblock.css</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\src\kook-enhance.js">
+      <Link>Resources\kook-enhance.js</Link>
+      <LogicalName>KOOKPurifier.GUI.Resources.kook-enhance.js</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\src\kook-no-streamer-mode.js">
+      <Link>Resources\kook-no-streamer-mode.js</Link>
+      <LogicalName>KOOKPurifier.GUI.Resources.kook-no-streamer-mode.js</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Costura.Fody" Version="6.2.0">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+</Project>

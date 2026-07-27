@@ -1,26 +1,32 @@
 # KOOK Purifier
 
-KOOK 客户端净化/去广告补丁。
+KOOK 客户端去广告、去弹窗净化补丁。
 
-本项目仅供个人学习与研究，请勿用于商业或违规用途。
+仅供个人学习与研究，请勿用于商业用途。
 
 ## 功能
 
-- 屏蔽各种广告、弹窗
-- 屏蔽各种装饰、挂件、勋章、动效、标识
+- 关掉各种烦人的广告和活动弹窗
+- 清掉各种勋章、动效、气泡与头饰挂件
 - 解锁 F12 开发者工具
-- 解锁 OBS / 直播姬进程检测
+- 解锁 OBS / 直播姬挂载检测
 
-## 环境要求
+## 使用方法
 
-[Node.js LTS](https://nodejs.org/zh-cn)
+1. 下载最新 [Release](https://github.com/Souma-Sumire/kook-purifier/releases)
+1. 退出 KOOK
+1. 打开 `KOOKPurifier.exe`，点击 **“一键应用”**
+1. 启动 KOOK
 
-## 使用
+## 开发者
 
 ```bash
-# 修补本地 KOOK 客户端（执行前请先关闭 KOOK）
+# 使用 Node.js 脚本修补（运行前请先关闭 KOOK）
 node kook-patch.js
 
 # 生成油猴脚本
 node kook-userscript.js
+
+# 自行编译 GUI 工具
+dotnet build KOOKPurifier.GUI -c Release
 ```
