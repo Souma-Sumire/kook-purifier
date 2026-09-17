@@ -83,14 +83,7 @@ namespace KOOKPurifier.GUI
 
             SetControlsEnabled(false);
 
-            var options = new PatchOptions
-            {
-                AdBlock = chkAdBlock.Checked,
-                Enhance = chkEnhance.Checked,
-                EnableDevTools = chkDevTools.Checked,
-                NoStreamer = chkNoStreamer.Checked,
-                DisableUpdate = chkDisableUpdate.Checked
-            };
+            var options = new PatchOptions();
 
             bool success = false;
             await Task.Run(() =>
@@ -159,7 +152,6 @@ namespace KOOKPurifier.GUI
             btnApply.Enabled = enabled;
             btnRestore.Enabled = enabled;
             btnBrowse.Enabled = enabled;
-            grpOptions.Enabled = enabled;
         }
     }
 }

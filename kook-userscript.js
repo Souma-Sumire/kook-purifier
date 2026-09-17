@@ -40,7 +40,7 @@ const meta = `// ==UserScript==
 // ==/UserScript==
 `;
 
-const out = meta + `\n(function () {\n"use strict";\n\n${inner(enhance)}\n\n${inner(noStreamer)}\n\nconst s = document.createElement("style");\ns.textContent = \`\n${css}\n\`;\ndocument.head.appendChild(s);\nconsole.log("[KOOK净化]");\n})();\n`;
+const out = meta + `\n(function () {\n"use strict";\n\n${inner(enhance)}\n\n${inner(noStreamer)}\n\nconst s = document.createElement("style");\ns.setAttribute("data-kook-adblock", "true");\ns.textContent = \`\n${css}\n\`;\ndocument.head.appendChild(s);\nconsole.log("[KOOK净化]");\n})();\n`;
 
 const dist = path.join(src, 'dist');
 if (!fs.existsSync(dist)) fs.mkdirSync(dist);

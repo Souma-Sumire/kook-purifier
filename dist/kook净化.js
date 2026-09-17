@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.43
+// @version      1.1.46
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -15,8 +15,43 @@
 (function () {
 "use strict";
 
-// 净化字符串形式的 JSON 数据，避免使用 JSON.parse 导致 64 位大整数 Snowflake ID 截断
+var CONFIG_KEY = 'kook_purifier_config';
+  var defaultConfig = {
+    replaceJoinSound: true,
+    purifyVip: true,
+    preciseTime: true,
+    blockAds: true,
+    enableDevTools: true
+  };
+
+  function loadConfig() {
+    try {
+      var raw = localStorage.getItem(CONFIG_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        var res = {};
+        for (var k in defaultConfig) {
+          res[k] = typeof parsed[k] === 'boolean' ? parsed[k] : defaultConfig[k];
+        }
+        return res;
+      }
+    } catch (_) {}
+    var copy = {};
+    for (var key in defaultConfig) copy[key] = defaultConfig[key];
+    return copy;
+  }
+
+  var currentConfig = loadConfig();
+
+  function saveConfig() {
+    try {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(currentConfig));
+    } catch (_) {}
+  }
+
+  // 净化字符串形式的 JSON 数据，避免使用 JSON.parse 导致 64 位大整数 Snowflake ID 截断
   function purifyJsonString(str) {
+    if (!currentConfig.purifyVip) return str;
     if (typeof str !== 'string' || !str) return str;
     return str
       .replace(/"is_vip"\s*:\s*[1-9]\d*/g, '"is_vip":0')
@@ -56,6 +91,10 @@
     }
     return origFetch.apply(this, arguments).then(function (res) {
       if (s.indexOf('/api/') !== -1) {
+        var ct = res.headers && res.headers.get ? res.headers.get('content-type') : '';
+        if (ct && ct.indexOf('application/json') === -1) {
+          return res;
+        }
         return res.text().then(function (text) {
           var purifiedText = purifyJsonString(text);
           return new Response(purifiedText, {
@@ -109,6 +148,7 @@
 
   // 移除 text-gradient class, VIP class 及内联 Style
   function cleanVipDom(el) {
+    if (!currentConfig.purifyVip) return;
     if (!el || el.nodeType !== 1) return;
     if (el.classList) {
       if (el.classList.contains('text-gradient')) {
@@ -134,11 +174,41 @@
     }
   }
 
+  var pendingDomNodes = [];
+  var domCleanScheduled = false;
+
+  function processPendingDomClean() {
+    domCleanScheduled = false;
+    if (!currentConfig.purifyVip || pendingDomNodes.length === 0) {
+      pendingDomNodes = [];
+      return;
+    }
+    var batch = pendingDomNodes;
+    pendingDomNodes = [];
+    for (var i = 0; i < batch.length; i++) {
+      cleanVipDom(batch[i]);
+    }
+  }
+
+  function scheduleDomClean(node) {
+    if (!currentConfig.purifyVip || !node || node.nodeType !== 1) return;
+    pendingDomNodes.push(node);
+    if (!domCleanScheduled) {
+      domCleanScheduled = true;
+      if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(processPendingDomClean);
+      } else {
+        setTimeout(processPendingDomClean, 16);
+      }
+    }
+  }
+
   var observer = new MutationObserver(function (mutations) {
+    if (!currentConfig.purifyVip) return;
     for (var i = 0; i < mutations.length; i++) {
       var added = mutations[i].addedNodes;
       for (var j = 0; j < added.length; j++) {
-        cleanVipDom(added[j]);
+        scheduleDomClean(added[j]);
       }
     }
   });
@@ -158,7 +228,7 @@
     if (window.moment && window.moment.fn && !window.moment.fn._patched) {
       var origFormat = window.moment.fn.format;
       window.moment.fn.format = function (fmt) {
-        if (typeof fmt === 'string') {
+        if (currentConfig.preciseTime && typeof fmt === 'string') {
           fmt = fmt.replace(/HH:mm(?!:ss)/g, 'HH:mm:ss').replace(/hh:mm(?!:ss)/g, 'hh:mm:ss');
         }
         return origFormat.call(this, fmt);
@@ -177,6 +247,7 @@
   ];
 
   function sanitizeAudioUrl(url) {
+    if (!currentConfig.replaceJoinSound) return url;
     if (typeof url === 'string' && soundPatterns.some(function (re) { return re.test(url); })) {
       return DEFAULT_JOIN_SOUND;
     }
@@ -222,7 +293,9 @@
         return new target(args[0]);
       }
     });
-    window.Audio.prototype = OrigAudio.prototype;
+    try {
+      window.Audio.prototype = OrigAudio.prototype;
+    } catch (_) {}
 
     try {
       var preloadAudio = new OrigAudio(DEFAULT_JOIN_SOUND);
@@ -233,6 +306,7 @@
 
   // DevTools 快捷键 Hook
   window.addEventListener('keydown', function (e) {
+    if (!currentConfig.enableDevTools) return;
     var isF12 = e.key === 'F12';
     var isCtrlShiftI = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i');
     if (isF12 || isCtrlShiftI) {
@@ -246,6 +320,105 @@
       } catch (_) { }
     }
   }, true);
+
+  // 动态同步去广告样式生效状态
+  function applyAdBlockState() {
+    var nodes = document.querySelectorAll('link[href*="kook-adblock.css"], style[data-kook-adblock]');
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].disabled = !currentConfig.blockAds;
+    }
+  }
+
+  function isElectronClient() {
+    try {
+      return !!(window.require && window.require('electron')) ||
+             (navigator && navigator.userAgent && navigator.userAgent.indexOf('Electron') !== -1);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // 右上角功能与设置下拉菜单
+  function initSettingsUI() {
+    if (document.getElementById('kp-settings-root')) return;
+
+    var rightOffset = isElectronClient() ? '140px' : '16px';
+    var styleEl = document.createElement('style');
+    styleEl.textContent =
+      '#kp-settings-root { position: fixed; top: 7px; right: ' + rightOffset + '; z-index: 999999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 12px; line-height: 1.4; user-select: none; }' +
+      '#kp-settings-btn { background: #25272d; border: 1px solid #3c404a; border-radius: 3px; color: #cfd3dc; padding: 2px 8px; cursor: pointer; display: flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; outline: none; transition: background 0.15s, border-color 0.15s; }' +
+      '#kp-settings-btn:hover { background: #2f323a; border-color: #505563; color: #ffffff; }' +
+      '#kp-settings-btn .kp-arrow { font-size: 9px; opacity: 0.7; margin-left: 2px; }' +
+      '#kp-settings-panel { position: absolute; top: calc(100% + 4px); right: 0; width: 220px; background: #1c1e22; border: 1px solid #363940; border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,0.5); padding: 8px 10px; box-sizing: border-box; display: none; }' +
+      '#kp-settings-panel.kp-show { display: block; }' +
+      '.kp-panel-header { font-size: 11px; font-weight: 600; color: #8a8f9d; padding-bottom: 6px; border-bottom: 1px solid #282b31; margin-bottom: 4px; }' +
+      '.kp-panel-item { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #23252a; cursor: pointer; color: #c0c4cc; }' +
+      '.kp-panel-item:last-of-type { border-bottom: none; }' +
+      '.kp-panel-item:hover { color: #ffffff; }' +
+      '.kp-switch { position: relative; width: 28px; height: 16px; -webkit-appearance: none; appearance: none; background: #3c4048; outline: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; margin: 0; }' +
+      '.kp-switch:checked { background: #3ba55d; }' +
+      '.kp-switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; background: #ffffff; border-radius: 50%; transition: transform 0.2s; }' +
+      '.kp-switch:checked::before { transform: translateX(12px); }' +
+      '.kp-panel-footer { font-size: 10px; color: #686c77; padding-top: 6px; text-align: center; }';
+    document.head.appendChild(styleEl);
+
+    var container = document.createElement('div');
+    container.id = 'kp-settings-root';
+    container.innerHTML =
+      '<button id="kp-settings-btn" type="button" title="KOOK 净化设置">' +
+        '<span>净化设置</span><span class="kp-arrow">▾</span>' +
+      '</button>' +
+      '<div id="kp-settings-panel">' +
+        '<div class="kp-panel-header">功能设置</div>' +
+        '<label class="kp-panel-item"><span>入场音效替换</span><input type="checkbox" data-key="replaceJoinSound" class="kp-switch"' + (currentConfig.replaceJoinSound ? ' checked' : '') + ' /></label>' +
+        '<label class="kp-panel-item"><span>VIP与装扮净化</span><input type="checkbox" data-key="purifyVip" class="kp-switch"' + (currentConfig.purifyVip ? ' checked' : '') + ' /></label>' +
+        '<label class="kp-panel-item"><span>秒级时间显示</span><input type="checkbox" data-key="preciseTime" class="kp-switch"' + (currentConfig.preciseTime ? ' checked' : '') + ' /></label>' +
+        '<label class="kp-panel-item"><span>界面广告屏蔽</span><input type="checkbox" data-key="blockAds" class="kp-switch"' + (currentConfig.blockAds ? ' checked' : '') + ' /></label>' +
+        '<label class="kp-panel-item"><span>F12 开发者工具</span><input type="checkbox" data-key="enableDevTools" class="kp-switch"' + (currentConfig.enableDevTools ? ' checked' : '') + ' /></label>' +
+        '<div class="kp-panel-footer">即时生效，部分项刷新后完全应用</div>' +
+      '</div>';
+
+    document.body.appendChild(container);
+
+    var btn = container.querySelector('#kp-settings-btn');
+    var panel = container.querySelector('#kp-settings-panel');
+
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      panel.classList.toggle('kp-show');
+    });
+
+    panel.addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
+
+    document.addEventListener('click', function () {
+      panel.classList.remove('kp-show');
+    });
+
+    var switches = panel.querySelectorAll('.kp-switch');
+    for (var i = 0; i < switches.length; i++) {
+      switches[i].addEventListener('change', function () {
+        var key = this.getAttribute('data-key');
+        if (key in currentConfig) {
+          currentConfig[key] = this.checked;
+          saveConfig();
+          if (key === 'blockAds') {
+            applyAdBlockState();
+          }
+        }
+      });
+    }
+
+    applyAdBlockState();
+  }
+
+  if (document.body) {
+    initSettingsUI();
+  } else {
+    document.addEventListener('DOMContentLoaded', initSettingsUI);
+  }
+  setTimeout(applyAdBlockState, 1000);
 
 var patchRetry = 0;
   function patchTasklist() {
@@ -306,6 +479,7 @@ var patchRetry = 0;
   } catch (_) {}
 
 const s = document.createElement("style");
+s.setAttribute("data-kook-adblock", "true");
 s.textContent = `
 /* --- 全局广告容器 --- */
 #kook-ads-container,
