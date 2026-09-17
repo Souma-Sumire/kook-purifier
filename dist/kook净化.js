@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.54
+// @version      1.1.55
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -1332,15 +1332,21 @@ div.friend-list-ad-banner,
 /* --- 隐藏左下角个人设置红点 --- */
 .app-self-info-unread,
 .app-self-info .red-dot,
-.app-self-info .badge,
+.app-self-info .badge:not(canvas):not([class*="canvas"]):not([class*="mask"]),
 .app-self-info .unread-badge,
-.app-self-info [class*="dot"],
-.app-self-info [class*="badge"],
+.app-self-info [class*="dot"]:not([class*="status"]):not([class*="canvas"]):not([class*="mask"]),
+.app-self-info [class*="badge"]:not([class*="canvas"]):not([class*="mask"]):not([class*="avatar"]),
 .app-self-info [class*="notify"],
 .app-self-bottom-icon .red-dot,
 .app-self-bottom-icon .badge,
 .app-self-bottom-icon [class*="dot"] {
   display: none !important;
+}
+
+/* 保护左下角个人头像 Canvas 不被角标/广告规则误伤 */
+.app-self-info .app-self-info-badge-mask__canvas,
+.app-self-info canvas {
+  display: block !important;
 }
 
 /* --- 隐藏增值服务相关模块 --- */
