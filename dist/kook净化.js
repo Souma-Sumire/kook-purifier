@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.42
+// @version      1.1.43
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -169,27 +169,67 @@
   hookMoment();
   setInterval(hookMoment, 1000);
 
-  // 个性化/装扮提示音 Hook（还原为默认提示音）
+  // 个性化/装扮提示音 Hook（还原为默认入场/提示音）
+  var DEFAULT_JOIN_SOUND = 'https://static.kookapp.cn/app/assets/audio/user-join.mp3';
   var soundPatterns = [
-    /img\.kookapp\.cn\/assets\/item\/resources\/.+\.mp3/,
-    /resources\/.+_notifications?_.+\.mp3/
+    /\/assets\/item\/resources\/.+\.mp3/i,
+    /resources\/.+_notifications?_.+\.mp3/i
   ];
-  var OrigAudio = window.Audio;
-  window.Audio = new Proxy(OrigAudio, {
-    construct: function (target, args) {
-      var audio = new target(args[0]);
-      var origPlay = audio.play;
-      audio.play = function () {
-        try {
-          if (soundPatterns.some(function (re) { return re.test(audio.src); })) {
-            audio.src = 'https://static.kookapp.cn/app/assets/audio/user-join.mp3';
-          }
-        } catch (_) {}
-        return origPlay.apply(audio, arguments);
-      };
-      return audio;
+
+  function sanitizeAudioUrl(url) {
+    if (typeof url === 'string' && soundPatterns.some(function (re) { return re.test(url); })) {
+      return DEFAULT_JOIN_SOUND;
     }
-  });
+    return url;
+  }
+
+  try {
+    var mediaProto = window.HTMLMediaElement ? window.HTMLMediaElement.prototype : null;
+    if (mediaProto) {
+      var srcDesc = Object.getOwnPropertyDescriptor(mediaProto, 'src');
+      if (srcDesc && srcDesc.set && srcDesc.get) {
+        Object.defineProperty(mediaProto, 'src', {
+          get: function () {
+            return srcDesc.get.call(this);
+          },
+          set: function (val) {
+            return srcDesc.set.call(this, sanitizeAudioUrl(val));
+          },
+          configurable: true,
+          enumerable: true
+        });
+      }
+    }
+  } catch (_) {}
+
+  try {
+    var origSetAttr = Element.prototype.setAttribute;
+    Element.prototype.setAttribute = function (name, val) {
+      if (typeof name === 'string' && name.toLowerCase() === 'src' && this instanceof HTMLMediaElement) {
+        val = sanitizeAudioUrl(val);
+      }
+      return origSetAttr.call(this, name, val);
+    };
+  } catch (_) {}
+
+  var OrigAudio = window.Audio;
+  if (OrigAudio) {
+    window.Audio = new Proxy(OrigAudio, {
+      construct: function (target, args) {
+        if (args && args.length > 0 && typeof args[0] === 'string') {
+          args[0] = sanitizeAudioUrl(args[0]);
+        }
+        return new target(args[0]);
+      }
+    });
+    window.Audio.prototype = OrigAudio.prototype;
+
+    try {
+      var preloadAudio = new OrigAudio(DEFAULT_JOIN_SOUND);
+      preloadAudio.preload = 'auto';
+      preloadAudio.load();
+    } catch (_) {}
+  }
 
   // DevTools 快捷键 Hook
   window.addEventListener('keydown', function (e) {
