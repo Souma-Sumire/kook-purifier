@@ -1,6 +1,21 @@
 (function () {
   'use strict';
 
+  function isNoStreamerEnabled() {
+    try {
+      var raw = localStorage.getItem('kook_purifier_config');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (typeof parsed.noStreamer === 'boolean') {
+          return parsed.noStreamer;
+        }
+      }
+    } catch (_) {}
+    return true;
+  }
+
+  if (!isNoStreamerEnabled()) return;
+
   var patchRetry = 0;
   function patchTasklist() {
     var kaiheila = window.Kaiheila;

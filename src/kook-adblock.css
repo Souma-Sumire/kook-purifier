@@ -570,8 +570,9 @@ body>div.buff-hq-tooltip {
   display: none !important;
 }
 
-/* --- 更新提醒 --- */
-#root>div.win-wapper>div.win-title-bar>div.win-title-inner>div.right>div:nth-child(2)>div.win-title-bar-icon.win-download-icon.animate-button.kookiconfont {
+/* --- 隐藏顶栏更新提醒按钮 --- */
+.win-download-icon,
+.win-title-bar-icon.win-download-icon {
   display: none !important;
 }
 

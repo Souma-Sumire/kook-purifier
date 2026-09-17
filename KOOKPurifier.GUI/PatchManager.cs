@@ -388,21 +388,15 @@ try {
     try { _autoUpdater.quitAndInstall = () => {}; } catch (_) {}
   }
 
-  _app.on('browser-window-created', (event, win) => {
-    win.webContents.on('before-input-event', (e, input) => {
-      if (input.type === 'keyDown') {
-        const isF12 = input.key === 'F12';
-        const isCtrlShiftI = (input.control || input.meta) && input.shift && (input.key === 'I' || input.key === 'i');
-        if (isF12 || isCtrlShiftI) {
-          win.webContents.toggleDevTools();
-        }
-      }
-    });
-  });
+  let _devToolsEnabled = true;
 
   if (_ipcMain) {
     try {
+      _ipcMain.on('set-devtools-enabled', (event, val) => {
+        _devToolsEnabled = !!val;
+      });
       _ipcMain.on('toggle-devtools', (event) => {
+        if (!_devToolsEnabled) return;
         const win = _BrowserWindow.fromWebContents(event.sender);
         if (win) win.webContents.toggleDevTools();
       });
@@ -415,6 +409,19 @@ try {
     try { _ipcMain.on('autoUpdateDownloading', () => {}); } catch (_) {}
     try { _ipcMain.on('autoUpdateCompleted', () => {}); } catch (_) {}
   }
+
+  _app.on('browser-window-created', (event, win) => {
+    win.webContents.on('before-input-event', (e, input) => {
+      if (!_devToolsEnabled) return;
+      if (input.type === 'keyDown') {
+        const isF12 = input.key === 'F12';
+        const isCtrlShiftI = (input.control || input.meta) && input.shift && (input.key === 'I' || input.key === 'i');
+        if (isF12 || isCtrlShiftI) {
+          win.webContents.toggleDevTools();
+        }
+      }
+    });
+  });
 } catch (_err) {}
 ";
             mainContent = devToolsSnippet + "\n" + mainContent;

@@ -22,6 +22,7 @@ namespace KOOKPurifier.GUI
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnApply = new System.Windows.Forms.Button();
             this.btnRestore = new System.Windows.Forms.Button();
+            this.lblStatus = new System.Windows.Forms.Label();
             this.txtLog = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
@@ -29,26 +30,26 @@ namespace KOOKPurifier.GUI
             // 
             this.lblPath.AutoSize = true;
             this.lblPath.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.lblPath.Location = new System.Drawing.Point(14, 16);
+            this.lblPath.Location = new System.Drawing.Point(14, 15);
             this.lblPath.Name = "lblPath";
-            this.lblPath.Size = new System.Drawing.Size(48, 17);
+            this.lblPath.Size = new System.Drawing.Size(44, 17);
             this.lblPath.TabIndex = 0;
             this.lblPath.Text = "路径：";
             // 
             // txtPath
             // 
             this.txtPath.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.txtPath.Location = new System.Drawing.Point(68, 13);
+            this.txtPath.Location = new System.Drawing.Point(62, 12);
             this.txtPath.Name = "txtPath";
-            this.txtPath.Size = new System.Drawing.Size(348, 23);
+            this.txtPath.Size = new System.Drawing.Size(326, 23);
             this.txtPath.TabIndex = 1;
             // 
             // btnBrowse
             // 
             this.btnBrowse.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.btnBrowse.Location = new System.Drawing.Point(424, 11);
+            this.btnBrowse.Location = new System.Drawing.Point(396, 10);
             this.btnBrowse.Name = "btnBrowse";
-            this.btnBrowse.Size = new System.Drawing.Size(80, 27);
+            this.btnBrowse.Size = new System.Drawing.Size(70, 27);
             this.btnBrowse.TabIndex = 2;
             this.btnBrowse.Text = "浏览...";
             this.btnBrowse.UseVisualStyleBackColor = true;
@@ -57,9 +58,9 @@ namespace KOOKPurifier.GUI
             // btnApply
             // 
             this.btnApply.Font = new System.Drawing.Font("微软雅黑", 9.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.btnApply.Location = new System.Drawing.Point(14, 46);
+            this.btnApply.Location = new System.Drawing.Point(14, 45);
             this.btnApply.Name = "btnApply";
-            this.btnApply.Size = new System.Drawing.Size(240, 36);
+            this.btnApply.Size = new System.Drawing.Size(222, 36);
             this.btnApply.TabIndex = 3;
             this.btnApply.Text = "一键净化";
             this.btnApply.UseVisualStyleBackColor = true;
@@ -68,31 +69,44 @@ namespace KOOKPurifier.GUI
             // btnRestore
             // 
             this.btnRestore.Font = new System.Drawing.Font("微软雅黑", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.btnRestore.Location = new System.Drawing.Point(264, 46);
+            this.btnRestore.Location = new System.Drawing.Point(244, 45);
             this.btnRestore.Name = "btnRestore";
-            this.btnRestore.Size = new System.Drawing.Size(240, 36);
+            this.btnRestore.Size = new System.Drawing.Size(222, 36);
             this.btnRestore.TabIndex = 4;
             this.btnRestore.Text = "一键还原";
             this.btnRestore.UseVisualStyleBackColor = true;
             this.btnRestore.Click += new System.EventHandler(this.btnRestore_Click);
             // 
+            // lblStatus
+            // 
+            this.lblStatus.AutoSize = true;
+            this.lblStatus.Font = new System.Drawing.Font("微软雅黑", 8.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.lblStatus.ForeColor = System.Drawing.Color.DimGray;
+            this.lblStatus.Location = new System.Drawing.Point(14, 90);
+            this.lblStatus.Name = "lblStatus";
+            this.lblStatus.Size = new System.Drawing.Size(80, 17);
+            this.lblStatus.TabIndex = 5;
+            this.lblStatus.Text = "状态：已就绪";
+            // 
             // txtLog
             // 
             this.txtLog.BackColor = System.Drawing.SystemColors.Window;
             this.txtLog.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtLog.Location = new System.Drawing.Point(14, 90);
+            this.txtLog.Location = new System.Drawing.Point(14, 116);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(490, 182);
-            this.txtLog.TabIndex = 5;
+            this.txtLog.Size = new System.Drawing.Size(452, 170);
+            this.txtLog.TabIndex = 6;
+            this.txtLog.Visible = false;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(518, 286);
+            this.ClientSize = new System.Drawing.Size(480, 116);
+            this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.txtLog);
             this.Controls.Add(this.btnRestore);
             this.Controls.Add(this.btnApply);
@@ -118,6 +132,7 @@ namespace KOOKPurifier.GUI
         private System.Windows.Forms.Button btnBrowse;
         private System.Windows.Forms.Button btnApply;
         private System.Windows.Forms.Button btnRestore;
+        private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.TextBox txtLog;
     }
 }

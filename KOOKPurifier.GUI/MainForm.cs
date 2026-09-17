@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -7,6 +8,9 @@ namespace KOOKPurifier.GUI
 {
     public partial class MainForm : Form
     {
+        private const int COLLAPSED_HEIGHT = 116;
+        private const int EXPANDED_HEIGHT = 300;
+
         public MainForm()
         {
             InitializeComponent();
@@ -14,8 +18,32 @@ namespace KOOKPurifier.GUI
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            this.ClientSize = new Size(480, COLLAPSED_HEIGHT);
+            txtLog.Visible = false;
             Log("欢迎使用 KOOK Purifier！");
             DetectKookDir();
+        }
+
+        private void SetStatus(string text, Color? color = null)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<string, Color?>(SetStatus), text, color);
+                return;
+            }
+            lblStatus.Text = text;
+            lblStatus.ForeColor = color ?? Color.DimGray;
+        }
+
+        private void ExpandLogWindow()
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(ExpandLogWindow));
+                return;
+            }
+            this.ClientSize = new Size(480, EXPANDED_HEIGHT);
+            txtLog.Visible = true;
         }
 
         private void Log(string msg)
@@ -36,10 +64,13 @@ namespace KOOKPurifier.GUI
             if (!string.IsNullOrEmpty(kookDir))
             {
                 txtPath.Text = kookDir;
+                string dirName = Path.GetFileName(kookDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                SetStatus("状态：已就绪 (" + dirName + ")");
                 Log("自动识别 KOOK 目录: " + kookDir);
             }
             else
             {
+                SetStatus("状态：请点击“浏览”选择 KOOK 目录", Color.FromArgb(180, 100, 0));
                 Log("[提示] 未能自动识别 KOOK 目录，请手动点击“浏览”选择。");
             }
         }
@@ -48,10 +79,11 @@ namespace KOOKPurifier.GUI
         {
             using (var dialog = new FolderBrowserDialog())
             {
-                dialog.Description = "请选择 KOOK 的 app-* 目录 (如 AppData\\Local\\KOOK\\app-0.81.0)";
+                dialog.Description = "请选择 KOOK 安装目录或 app-* 目录";
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     txtPath.Text = dialog.SelectedPath;
+                    SetStatus("状态：已选择目录");
                     Log("已选择目录: " + dialog.SelectedPath);
                 }
             }
@@ -76,15 +108,15 @@ namespace KOOKPurifier.GUI
                 }
                 else
                 {
-                    Log("[提示] 修补已取消：请关闭 KOOK 后重试。");
+                    SetStatus("状态：操作已取消");
                     return;
                 }
             }
 
             SetControlsEnabled(false);
+            SetStatus("状态：正在净化修补...", Color.FromArgb(0, 102, 204));
 
             var options = new PatchOptions();
-
             bool success = false;
             await Task.Run(() =>
             {
@@ -95,11 +127,14 @@ namespace KOOKPurifier.GUI
 
             if (success)
             {
-                MessageBox.Show("修补成功！重新启动 KOOK 客户端即可生效。", "修补完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                SetStatus("状态：修补成功！重新启动 KOOK 即可生效", Color.FromArgb(46, 125, 50));
+                MessageBox.Show("修补成功！重新启动 KOOK 客户端即可生效。", "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
-                MessageBox.Show("修补失败，请查看日志获取详细信息。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SetStatus("状态：修补失败，已展开日志", Color.FromArgb(198, 40, 40));
+                ExpandLogWindow();
+                MessageBox.Show("修补失败，已为您展开下方日志排查原因。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -122,12 +157,13 @@ namespace KOOKPurifier.GUI
                 }
                 else
                 {
-                    Log("[提示] 还原已取消：请关闭 KOOK 后重试。");
+                    SetStatus("状态：操作已取消");
                     return;
                 }
             }
 
             SetControlsEnabled(false);
+            SetStatus("状态：正在还原官方客户端...", Color.FromArgb(0, 102, 204));
 
             bool success = false;
             await Task.Run(() =>
@@ -139,11 +175,14 @@ namespace KOOKPurifier.GUI
 
             if (success)
             {
+                SetStatus("状态：已恢复官方客户端", Color.FromArgb(46, 125, 50));
                 MessageBox.Show("已恢复官方客户端！", "还原成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
-                MessageBox.Show("还原失败，请查看下方日志窗口获取详细原因。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                SetStatus("状态：还原失败，已展开日志", Color.FromArgb(198, 40, 40));
+                ExpandLogWindow();
+                MessageBox.Show("还原失败，已为您展开下方日志排查原因。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
