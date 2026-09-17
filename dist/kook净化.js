@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.55
+// @version      1.1.56
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -305,6 +305,7 @@ var CONFIG_KEY = 'kook_purifier_config';
     var isF12 = e.key === 'F12';
     var isCtrlShiftI = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i');
     if (isF12 || isCtrlShiftI) {
+      if (!isElectronApp()) return;
       if (!currentConfig.enableDevTools) {
         e.preventDefault();
         e.stopPropagation();
@@ -532,6 +533,26 @@ var CONFIG_KEY = 'kook_purifier_config';
 
     ensureStyles();
 
+    var isElectron = isElectronApp();
+
+    var devToolsHtml = isElectron
+      ? '<label class="kp-panel-item">' +
+          '<div class="kp-item-info"><span>F12 开发者工具</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<input type="checkbox" data-key="enableDevTools" class="kp-switch"' + (currentConfig.enableDevTools ? ' checked' : '') + ' />' +
+        '</label>'
+      : '';
+
+    var noStreamerHtml = isElectron
+      ? '<label class="kp-panel-item">' +
+          '<div class="kp-item-info"><span>禁用主播检测</span><span class="kp-badge kp-badge-restart">需重启</span></div>' +
+          '<input type="checkbox" data-key="noStreamer" class="kp-switch"' + (currentConfig.noStreamer ? ' checked' : '') + ' />' +
+        '</label>'
+      : '';
+
+    var footerNote = isElectron
+      ? '提示：需刷新或需重启的项在变更后需重载应用'
+      : '提示：需刷新的项在变更后需重新加载页面';
+
     var container = document.createElement('div');
     container.id = 'kp-settings-root';
     container.innerHTML =
@@ -550,20 +571,14 @@ var CONFIG_KEY = 'kook_purifier_config';
           '<div class="kp-item-info"><span>界面广告屏蔽</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="blockAds" class="kp-switch"' + (currentConfig.blockAds ? ' checked' : '') + ' />' +
         '</label>' +
-        '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>F12 开发者工具</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
-          '<input type="checkbox" data-key="enableDevTools" class="kp-switch"' + (currentConfig.enableDevTools ? ' checked' : '') + ' />' +
-        '</label>' +
+        devToolsHtml +
         '<label class="kp-panel-item">' +
           '<div class="kp-item-info"><span>VIP与装扮净化</span><span class="kp-badge kp-badge-refresh">需刷新</span></div>' +
           '<input type="checkbox" data-key="purifyVip" class="kp-switch"' + (currentConfig.purifyVip ? ' checked' : '') + ' />' +
         '</label>' +
-        '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>禁用主播检测</span><span class="kp-badge kp-badge-restart">需重启</span></div>' +
-          '<input type="checkbox" data-key="noStreamer" class="kp-switch"' + (currentConfig.noStreamer ? ' checked' : '') + ' />' +
-        '</label>' +
+        noStreamerHtml +
         '<div class="kp-panel-footer">' +
-          '<div class="kp-footer-note">提示：需刷新或需重启的项在变更后需重载应用</div>' +
+          '<div class="kp-footer-note">' + footerNote + '</div>' +
           '<button id="kp-reload-btn" type="button" class="kp-reload-btn">重载页面 (Ctrl+R)</button>' +
         '</div>' +
       '</div>';
