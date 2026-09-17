@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.53
+// @version      1.1.54
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -1371,87 +1371,22 @@ body>div.buff-hq-tooltip {
 }
 
 /* ==========================================================================
-   CSS :has() 彻底消除广告/推广父级容器空白占位 (Collapse Ad Placeholders)
-   通过现代关系伪类递归折叠外层包裹元素，杜绝子元素隐藏后残留的空白缝隙与固定高度
+   顶栏布局加固与精准广告占位消除
    ========================================================================== */
 
-/* 1. 消息流与频道顶部横幅广告外层包裹容器折叠 */
-div:has(> .kook-message-header-alert),
-div:has(> div[class*="message-header-alert"]),
-div:has(> .banner-box),
-div:has(> .guild-banner-box),
-div:has(> .guild-channel-banner-placeholder-box),
-div:has(> div[class*="guild-banner-box"]),
-div:has(> .mixed-ad-carousel-wrapper),
-div:has(> .mixed-ad-carousel),
-div:has(> .audio-center-promotion),
-div:has(> [class*="audio-center-promotion"]),
-div:has(> .kbc-banner-wrapper),
-div:has(> .sdk-ad-container),
-div:has(> .kook-ad-image) {
-  display: none !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  max-height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  overflow: hidden !important;
+/* 确保顶栏右侧图标组永远坚固靠右对齐，不受左侧内容影响 */
+.win-title-inner > .right {
+  margin-left: auto !important;
 }
 
-/* 2. 侧边栏与列表推广/任务/签到卡片外层包裹容器折叠 */
-li:has(.promotion-task-item),
-li:has(div[class*="promotion-task"]),
-li:has(div[class*="-task-item"]),
-li:has(div[class*="daily-task"]),
-li:has(div[class*="activity-task"]),
-div:has(> .promotion-banner),
-div:has(> .promotion-banner-section),
-div:has(> .new-task-block-container),
-div:has(> .accelerator-promotion),
-div:has(> .discover-corner-ad-patch),
-div:has(> .discover-goods-ad),
-div:has(> .discover-goods-ad-border),
-div:has(> .robot-home-dialog-banner),
-div:has(> .recording-ctrl-panel-banner) {
+/* 侧边栏任务、推广包裹条目折叠 */
+li:has(> .promotion-task-item),
+li:has(> div[class*="promotion-task"]),
+li:has(> div[class*="daily-task"]) {
   display: none !important;
   height: 0 !important;
-  min-height: 0 !important;
-  max-height: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
-  border: none !important;
-  overflow: hidden !important;
-}
-
-/* 3. 顶栏/设置页商城与下载客户端引导外层包裹容器折叠 */
-div:has(> .client-download-tag),
-div:has(> .desktop-client-download-tip),
-div:has(> .khj-entry-tag),
-div:has(> .title-icon-wrapper),
-div:has(> .kook-anchor-titlebar-left),
-div:has(> .setting-page-to-shop),
-div:has(> .goto-kpropshop),
-div:has(> .button-decorations-kprop-add),
-div:has(> .console-tools-container) {
-  display: none !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  max-height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  overflow: hidden !important;
-}
-
-/* 4. 通用弹窗与遮罩层深度折叠（防止遗留不可点击的空白遮罩蒙层） */
-[class*="modal-container"]:has(.promotion-dialog, .kpm-vip-modal, .vip-buy-modal, .vip-promotion-modal, .goods-modal, .dialog-payment, .recharge-modal, .activity-dialog, .activity-modal, .festival-activity-modal, .voice-quality-eval-modal, .guide-modal, .download-app-modal),
-[class*="modal-mask"]:has(.promotion-dialog, .kpm-vip-modal, .vip-buy-modal, .vip-promotion-modal, .goods-modal, .dialog-payment, .recharge-modal, .activity-dialog, .activity-modal, .festival-activity-modal, .voice-quality-eval-modal, .guide-modal, .download-app-modal),
-[class*="dialog-mask"]:has(.promotion-dialog, .kpm-vip-modal, .vip-buy-modal, .vip-promotion-modal, .goods-modal, .dialog-payment, .recharge-modal, .activity-dialog, .activity-modal, .festival-activity-modal, .voice-quality-eval-modal, .guide-modal, .download-app-modal) {
-  display: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  visibility: hidden !important;
 }
 `;
 document.head.appendChild(s);
