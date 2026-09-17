@@ -141,6 +141,42 @@ namespace KOOKPurifier.GUI
             }
         }
 
+        public static bool LaunchKook(string inputDir)
+        {
+            try
+            {
+                string appDir = ResolveAppDir(inputDir);
+                if (string.IsNullOrEmpty(appDir)) return false;
+
+                string exePath = Path.Combine(appDir, "KOOK.exe");
+                if (!File.Exists(exePath))
+                {
+                    string parent = Path.GetDirectoryName(appDir);
+                    if (!string.IsNullOrEmpty(parent))
+                    {
+                        string parentExe = Path.Combine(parent, "KOOK.exe");
+                        if (File.Exists(parentExe)) exePath = parentExe;
+                    }
+                }
+
+                if (File.Exists(exePath))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = exePath,
+                        WorkingDirectory = Path.GetDirectoryName(exePath),
+                        UseShellExecute = true
+                    });
+                    return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static bool ApplyPatch(string inputDir, PatchOptions options, Action<string> log)
         {
             string appDir = ResolveAppDir(inputDir);

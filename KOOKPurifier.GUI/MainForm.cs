@@ -127,14 +127,40 @@ namespace KOOKPurifier.GUI
 
             if (success)
             {
-                SetStatus("状态：修补成功！重新启动 KOOK 即可生效", Color.FromArgb(46, 125, 50));
-                MessageBox.Show("修补成功！重新启动 KOOK 客户端即可生效。", "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                SetStatus("状态：修补成功！可直接点击右侧“启动 KOOK”", Color.FromArgb(46, 125, 50));
+                var dr = MessageBox.Show("修补成功！重新启动 KOOK 客户端即可生效。\n\n是否立即启动 KOOK 客户端？", "完成", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                if (dr == DialogResult.Yes)
+                {
+                    PatchManager.LaunchKook(path);
+                    Log("已拉起 KOOK 客户端进程。");
+                }
             }
             else
             {
                 SetStatus("状态：修补失败，已展开日志", Color.FromArgb(198, 40, 40));
                 ExpandLogWindow();
                 MessageBox.Show("修补失败，已为您展开下方日志排查原因。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnLaunch_Click(object sender, EventArgs e)
+        {
+            string path = txtPath.Text.Trim();
+            if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+            {
+                MessageBox.Show("未找到有效的 KOOK 安装目录，无法启动！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (PatchManager.LaunchKook(path))
+            {
+                SetStatus("状态：已启动 KOOK 客户端", Color.FromArgb(46, 125, 50));
+                Log("已拉起 KOOK 客户端进程。");
+            }
+            else
+            {
+                SetStatus("状态：启动 KOOK 失败，未找到 KOOK.exe", Color.FromArgb(198, 40, 40));
+                Log("[错误] 未能在目标目录中找到 KOOK.exe。");
             }
         }
 
@@ -191,6 +217,7 @@ namespace KOOKPurifier.GUI
             btnApply.Enabled = enabled;
             btnRestore.Enabled = enabled;
             btnBrowse.Enabled = enabled;
+            btnLaunch.Enabled = enabled;
         }
     }
 }
