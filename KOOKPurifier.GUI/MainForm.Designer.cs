@@ -23,7 +23,6 @@ namespace KOOKPurifier.GUI
             this.btnApply = new System.Windows.Forms.Button();
             this.btnRestore = new System.Windows.Forms.Button();
             this.lblStatus = new System.Windows.Forms.Label();
-            this.btnLaunch = new System.Windows.Forms.Button();
             this.txtLog = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
@@ -89,17 +88,6 @@ namespace KOOKPurifier.GUI
             this.lblStatus.TabIndex = 5;
             this.lblStatus.Text = "状态：已就绪";
             // 
-            // btnLaunch
-            // 
-            this.btnLaunch.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.btnLaunch.Location = new System.Drawing.Point(366, 84);
-            this.btnLaunch.Name = "btnLaunch";
-            this.btnLaunch.Size = new System.Drawing.Size(100, 26);
-            this.btnLaunch.TabIndex = 7;
-            this.btnLaunch.Text = "启动 KOOK";
-            this.btnLaunch.UseVisualStyleBackColor = true;
-            this.btnLaunch.Click += new System.EventHandler(this.btnLaunch_Click);
-            // 
             // txtLog
             // 
             this.txtLog.BackColor = System.Drawing.SystemColors.Window;
@@ -118,7 +106,6 @@ namespace KOOKPurifier.GUI
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(480, 116);
-            this.Controls.Add(this.btnLaunch);
             this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.txtLog);
             this.Controls.Add(this.btnRestore);
@@ -146,7 +133,6 @@ namespace KOOKPurifier.GUI
         private System.Windows.Forms.Button btnApply;
         private System.Windows.Forms.Button btnRestore;
         private System.Windows.Forms.Label lblStatus;
-        private System.Windows.Forms.Button btnLaunch;
         private System.Windows.Forms.TextBox txtLog;
     }
 }
