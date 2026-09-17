@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.1.51
+// @version      1.1.52
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -620,16 +620,25 @@ var CONFIG_KEY = 'kook_purifier_config';
     return settingsGroup;
   }
 
-  function syncSettingsUIAttachment() {
-    var container = getSettingsElement();
-    var group = getSettingsGroup();
-
-    if (container.parentNode !== group) {
-      group.appendChild(container);
+  function isElectronApp() {
+    try {
+      return !!(window.require && window.require('electron')) ||
+             (navigator && navigator.userAgent && navigator.userAgent.indexOf('Electron') !== -1);
+    } catch (_) {
+      return false;
     }
+  }
 
+  function syncSettingsUIAttachment() {
     var rightBox = document.querySelector('.win-title-inner .right');
     if (rightBox) {
+      var container = getSettingsElement();
+      var group = getSettingsGroup();
+
+      if (container.parentNode !== group) {
+        group.appendChild(container);
+      }
+
       // 查找 right 容器中所有的 win-title-bar-icon-group（排除我们自己的 group）
       var iconGroups = rightBox.querySelectorAll(':scope > .win-title-bar-icon-group:not(#kp-settings-group)');
       var windowControlGroup = iconGroups.length > 0 ? iconGroups[iconGroups.length - 1] : null;
@@ -645,12 +654,24 @@ var CONFIG_KEY = 'kook_purifier_config';
         }
       }
       container.classList.remove('kp-fallback-mode');
+    } else if (!isElectronApp()) {
+      // 纯网页版：仅在应用主视图就绪后挂载到右上角
+      var isWebReady = !!document.querySelector('.guild-list, .chat-panel, .user-me-wrapper, #root .app-background');
+      if (isWebReady) {
+        var container = getSettingsElement();
+        var body = document.body || document.documentElement;
+        if (body && (container.parentNode !== body || !body.contains(container))) {
+          container.classList.add('kp-fallback-mode');
+          body.appendChild(container);
+        }
+      }
     } else {
-      // 网页端降级：直接挂载到 body
-      var body = document.body || document.documentElement;
-      if (body && (container.parentNode !== body || !body.contains(container))) {
-        container.classList.add('kp-fallback-mode');
-        body.appendChild(container);
+      // 桌面客户端在开屏 Loading 阶段：保持隐藏，绝不在 loading 画面浮现
+      if (settingsGroup && settingsGroup.parentNode) {
+        settingsGroup.parentNode.removeChild(settingsGroup);
+      }
+      if (settingsRoot && settingsRoot.parentNode && settingsRoot.parentNode !== settingsGroup) {
+        settingsRoot.parentNode.removeChild(settingsRoot);
       }
     }
 
