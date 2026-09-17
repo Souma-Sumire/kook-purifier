@@ -59,26 +59,94 @@ namespace KOOKPurifier.GUI
             return new Version(0, 0, 0);
         }
 
+        public static string ResolveAppDir(string inputPath)
+        {
+            if (string.IsNullOrWhiteSpace(inputPath)) return null;
+
+            string path = inputPath.Trim().Trim('"', '\'');
+            if (File.Exists(path))
+            {
+                path = Path.GetDirectoryName(path);
+            }
+
+            if (!Directory.Exists(path)) return null;
+
+            // 若当前目录存在 resources，则本身就是目标 app-* 目录
+            if (Directory.Exists(Path.Combine(path, "resources")))
+            {
+                return path;
+            }
+
+            // 若用户选的是 resources 目录自身，退回上一级
+            string folderName = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            if (string.Equals(folderName, "resources", StringComparison.OrdinalIgnoreCase))
+            {
+                string parent = Path.GetDirectoryName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                if (!string.IsNullOrEmpty(parent) && Directory.Exists(Path.Combine(parent, "resources")))
+                {
+                    return parent;
+                }
+            }
+
+            // 若用户选的是 KOOK 根目录（例如 AppData\Local\KOOK），自动选择版本号最新的 app-* 目录
+            var subDirs = new List<string>(Directory.GetDirectories(path, "app-*"));
+            if (subDirs.Count > 0)
+            {
+                subDirs.Sort((a, b) =>
+                {
+                    var va = ParseVersion(Path.GetFileName(a));
+                    var vb = ParseVersion(Path.GetFileName(b));
+                    return vb.CompareTo(va);
+                });
+                return subDirs[0];
+            }
+
+            return path;
+        }
+
         public static bool IsKookRunning()
         {
             Process[] procs = Process.GetProcessesByName("KOOK");
             return procs != null && procs.Length > 0;
         }
 
-        public static void KillKookProcess()
+        public static bool KillKookProcess(int timeoutMs = 5000)
         {
-            Process[] procs = Process.GetProcessesByName("KOOK");
-            foreach (var p in procs)
+            try
             {
-                try { p.Kill(); } catch { }
+                Process[] procs = Process.GetProcessesByName("KOOK");
+                if (procs == null || procs.Length == 0) return true;
+
+                foreach (var p in procs)
+                {
+                    try { p.Kill(); } catch { }
+                }
+
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                while (sw.ElapsedMilliseconds < timeoutMs)
+                {
+                    Process[] remaining = Process.GetProcessesByName("KOOK");
+                    if (remaining == null || remaining.Length == 0)
+                    {
+                        System.Threading.Thread.Sleep(300);
+                        return true;
+                    }
+                    System.Threading.Thread.Sleep(100);
+                }
+                return !IsKookRunning();
+            }
+            catch
+            {
+                return false;
             }
         }
 
-        public static bool ApplyPatch(string appDir, PatchOptions options, Action<string> log)
+        public static bool ApplyPatch(string inputDir, PatchOptions options, Action<string> log)
         {
+            string appDir = ResolveAppDir(inputDir);
             if (string.IsNullOrEmpty(appDir) || !Directory.Exists(appDir))
             {
-                log("[错误] 无效的 KOOK 安装目录: " + appDir);
+                log("[错误] 无效的 KOOK 安装目录: " + (inputDir ?? "空"));
                 return false;
             }
 
@@ -185,45 +253,91 @@ namespace KOOKPurifier.GUI
             }
         }
 
-        public static bool RestorePatch(string appDir, Action<string> log)
+        public static bool RestorePatch(string inputDir, Action<string> log)
         {
+            string appDir = ResolveAppDir(inputDir);
             if (string.IsNullOrEmpty(appDir) || !Directory.Exists(appDir))
             {
-                log("[错误] 无效的 KOOK 安装目录: " + appDir);
+                log("[错误] 无效的 KOOK 安装目录: " + (inputDir ?? "空"));
                 return false;
             }
 
             if (IsKookRunning())
             {
-                log("[警告] 检测到 KOOK 正在运行，请先关闭 KOOK 客户端！");
-                return false;
+                log("[提示] 检测到 KOOK 进程正在运行，正在关闭...");
+                if (!KillKookProcess(3000))
+                {
+                    log("[警告] 检测到 KOOK 仍有进程占用，请手动在任务管理器关闭 KOOK 后重试！");
+                    return false;
+                }
             }
 
             string resourcesDir = Path.Combine(appDir, "resources");
+            if (!Directory.Exists(resourcesDir))
+            {
+                log("[错误] 未在目标目录中找到 resources 文件夹: " + appDir);
+                return false;
+            }
+
             string asarPath = Path.Combine(resourcesDir, "app.asar");
             string asarBakPath = Path.Combine(resourcesDir, "app.asar.bak");
             string unpackedDir = Path.Combine(resourcesDir, "app.asar.unpacked");
+
             string unpackedBakDir = Path.Combine(resourcesDir, "app.asar.unpacked.bak");
+            if (!Directory.Exists(unpackedBakDir))
+            {
+                string altBak = Path.Combine(resourcesDir, "app.asar.bak.unpacked");
+                if (Directory.Exists(altBak)) unpackedBakDir = altBak;
+            }
 
             bool restored = false;
 
             if (File.Exists(asarBakPath))
             {
-                File.Copy(asarBakPath, asarPath, true);
-                log("[信息] 已恢复原始 app.asar 文件。");
-                restored = true;
+                int retry = 3;
+                while (retry-- > 0)
+                {
+                    try
+                    {
+                        File.Copy(asarBakPath, asarPath, true);
+                        log("[信息] 已恢复原始 app.asar 文件。");
+                        restored = true;
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (retry > 0)
+                        {
+                            System.Threading.Thread.Sleep(300);
+                        }
+                        else
+                        {
+                            log("[错误] 还原 app.asar 失败 (可能文件被占用): " + ex.Message);
+                        }
+                    }
+                }
             }
             else
             {
-                log("[警告] 未找到 app.asar.bak 备份文件。");
+                log("[警告] 未在 " + resourcesDir + " 找到 app.asar.bak 备份文件。");
             }
 
             if (Directory.Exists(unpackedBakDir))
             {
-                if (Directory.Exists(unpackedDir)) Directory.Delete(unpackedDir, true);
-                CopyDirectorySync(unpackedBakDir, unpackedDir);
-                log("[信息] 已恢复原始 app.asar.unpacked 目录。");
-                restored = true;
+                try
+                {
+                    if (Directory.Exists(unpackedDir))
+                    {
+                        try { Directory.Delete(unpackedDir, true); } catch { }
+                    }
+                    CopyDirectorySync(unpackedBakDir, unpackedDir);
+                    log("[信息] 已恢复原始 app.asar.unpacked 目录。");
+                    restored = true;
+                }
+                catch (Exception ex)
+                {
+                    log("[警告] 恢复 app.asar.unpacked 时发生异常: " + ex.Message);
+                }
             }
 
             EnsureUpdateExeRestored(appDir, log);

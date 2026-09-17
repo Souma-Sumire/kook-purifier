@@ -143,7 +143,7 @@ namespace KOOKPurifier.GUI
             }
             else
             {
-                MessageBox.Show("还原失败或未找到备份文件，请查看日志信息。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("还原失败，请查看下方日志窗口获取详细原因。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
