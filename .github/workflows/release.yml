@@ -35,4 +35,4 @@ jobs:
         with:
           files: release-artifacts/*
           name: KOOK Purifier ${{ github.ref_name }}
-          draft: true
+          draft: false
