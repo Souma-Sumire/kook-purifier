@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.2.0
+// @version      1.2.1
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -1263,10 +1263,18 @@ div[class*="badge-item"],
 .prop-item,
 .prop-item-img-bg,
 .intimacy-img,
-.intimacy-tag,
-.user-banner,
-.user-banner-shade,
-div[class*="user-banner"] {
+.intimacy-tag {
+  display: none !important;
+}
+
+/* --- 用户资料卡横幅：保留基础布局避免头像与卡片塌陷，净化装扮大图与动态背景 --- */
+.user-banner.has-banner {
+  height: 74px !important;
+  background-image: none !important;
+  background-color: var(--color-bg-workspace-raised, #2b2d31) !important;
+}
+
+.user-banner video {
   display: none !important;
 }
 

@@ -459,10 +459,18 @@ div[class*="badge-item"],
 .prop-item,
 .prop-item-img-bg,
 .intimacy-img,
-.intimacy-tag,
-.user-banner,
-.user-banner-shade,
-div[class*="user-banner"] {
+.intimacy-tag {
+  display: none !important;
+}
+
+/* --- 用户资料卡横幅：保留基础布局避免头像与卡片塌陷，净化装扮大图与动态背景 --- */
+.user-banner.has-banner {
+  height: 74px !important;
+  background-image: none !important;
+  background-color: var(--color-bg-workspace-raised, #2b2d31) !important;
+}
+
+.user-banner video {
   display: none !important;
 }
 
