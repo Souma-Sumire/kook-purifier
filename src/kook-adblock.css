@@ -615,3 +615,37 @@ li:has(> div[class*="daily-task"]) {
   margin: 0 !important;
   padding: 0 !important;
 }
+
+/* --- 用户菜单推广入口（KOOK加速器、道具商城） --- */
+.user-setting-menu-item:has(.menu-inner-button),
+.user-setting-menu-item:has([class*="ShopSvgIcon"]),
+.user-setting-menu-item:has(svg.shop-svg-icon),
+.user-setting-menu-item:has(.tag) {
+  display: none !important;
+}
+
+/* --- 迅游加速器联运层 --- */
+.xunyou-bg-image-layer,
+.xunyou-bg-mask-layer,
+.xunyou-content-layer,
+.accelerator-logo {
+  display: none !important;
+}
+
+/* --- 顶栏道具商城悬浮气泡容器 --- */
+.shop-icon-tooltip-big,
+.shop-icon-tooltip-big-content,
+.shop-icon-tooltip-small,
+.shop-icon-tooltip-small-content,
+.shop-close-icon {
+  display: none !important;
+}
+
+/* --- 游戏日报与带货抽奖卡片 --- */
+.kk-daily-root,
+.kk-daily,
+.kk-daily-password-card,
+.kk-daily-ammo-card,
+.kk-daily-data-row {
+  display: none !important;
+}

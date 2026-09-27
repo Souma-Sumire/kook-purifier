@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.2.5
+// @version      1.2.6
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -20,6 +20,8 @@ var CONFIG_KEY = 'kook_purifier_config';
     replaceJoinSound: true,
     purifyVip: true,
     blockAds: true,
+    blockNetworkAds: true,
+    blockTelemetry: true,
     enableDevTools: true,
     noStreamer: true,
     skipDiscoverOnStartup: true
@@ -137,7 +139,7 @@ var CONFIG_KEY = 'kook_purifier_config';
       .replace(/"decorations"\s*:\s*(\[[^\[\]]*\]|\{[^{}]*\}|"[^"]*"|[0-9]+)/g, '"decorations":null');
   }
 
-  // 语音、直播、RTC、网关、消息轮询及频道相关请求判定
+  // 语音、直播、RTC、网关、消息轮询及频道相关请求判定（绝不拦截）
   function isLiveOrRtcUrl(url) {
     if (!url || typeof url !== 'string') return false;
     var u = url.toLowerCase();
@@ -156,6 +158,33 @@ var CONFIG_KEY = 'kook_purifier_config';
            u.indexOf('message') !== -1;
   }
 
+  // 判定是否为广告、活动弹窗或商业推广投放请求
+  function isAdNetworkUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    var u = url.toLowerCase();
+    return u.indexOf('ad-placement') !== -1 ||
+           u.indexOf('ssp_ad_sdk') !== -1 ||
+           u.indexOf('mediav.com') !== -1 ||
+           u.indexOf('xubei-products') !== -1 ||
+           u.indexOf('promotion/first-record-popup-view') !== -1 ||
+           u.indexOf('promotion/manual-complete-task') !== -1 ||
+           u.indexOf('promotion/ongoing') !== -1 ||
+           u.indexOf('promotion/task') !== -1 ||
+           u.indexOf('promotion/accept-task') !== -1;
+  }
+
+  // 判定是否为数据统计、埋点上报、Sentry 监控或营销归因请求
+  function isTelemetryUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    var u = url.toLowerCase();
+    return u.indexOf('experience.kookapp.com.cn') !== -1 ||
+           u.indexOf('errorlog.kookapp.com.cn') !== -1 ||
+           u.indexOf('log.kookapp.cn') !== -1 ||
+           u.indexOf('sentry') !== -1 ||
+           u.indexOf('user/utm') !== -1 ||
+           u.indexOf('report-activity') !== -1;
+  }
+
   // Hook Fetch 接口
   var origFetch = window.fetch;
   window.fetch = function (url, options) {
@@ -163,6 +192,21 @@ var CONFIG_KEY = 'kook_purifier_config';
     if (isLiveOrRtcUrl(s)) {
       return origFetch.apply(this, arguments);
     }
+
+    if (currentConfig.blockNetworkAds && isAdNetworkUrl(s)) {
+      if (s.indexOf('.js') !== -1) {
+        return Promise.resolve(new Response('', { status: 200, headers: { 'content-type': 'application/javascript' } }));
+      }
+      return Promise.resolve(new Response('{"code":0,"message":"success","data":[]}', {
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      }));
+    }
+
+    if (currentConfig.blockTelemetry && isTelemetryUrl(s)) {
+      return Promise.resolve(new Response('', { status: 204, statusText: 'No Content' }));
+    }
+
     return origFetch.apply(this, arguments).then(function (res) {
       if (s.indexOf('/api/') !== -1) {
         var ct = res.headers && res.headers.get ? res.headers.get('content-type') : '';
@@ -190,13 +234,34 @@ var CONFIG_KEY = 'kook_purifier_config';
     var self = this;
     self._url = url || '';
     self._isLiveOrRtc = isLiveOrRtcUrl(self._url);
+    self._isAdBlocked = !self._isLiveOrRtc && currentConfig.blockNetworkAds && isAdNetworkUrl(self._url);
+    self._isTelemetryBlocked = !self._isLiveOrRtc && currentConfig.blockTelemetry && isTelemetryUrl(self._url);
     return origOpen.apply(this, arguments);
   };
 
   var origSend = XMLHttpRequest.prototype.send;
   XMLHttpRequest.prototype.send = function () {
+    var xhrSelf = this;
+    if (xhrSelf._isAdBlocked || xhrSelf._isTelemetryBlocked) {
+      var mockBody = xhrSelf._isAdBlocked ? '{"code":0,"message":"success","data":[]}' : '';
+      setTimeout(function () {
+        try {
+          Object.defineProperty(xhrSelf, 'readyState', { value: 4, writable: true, configurable: true });
+          Object.defineProperty(xhrSelf, 'status', { value: xhrSelf._isAdBlocked ? 200 : 204, writable: true, configurable: true });
+          Object.defineProperty(xhrSelf, 'responseText', { value: mockBody, writable: true, configurable: true });
+          Object.defineProperty(xhrSelf, 'response', { value: mockBody, writable: true, configurable: true });
+        } catch (_) {}
+        if (typeof xhrSelf.onreadystatechange === 'function') {
+          try { xhrSelf.onreadystatechange(); } catch (_) {}
+        }
+        if (typeof xhrSelf.onload === 'function') {
+          try { xhrSelf.onload(); } catch (_) {}
+        }
+      }, 0);
+      return;
+    }
+
     if (!this._isLiveOrRtc && this._url.indexOf('/api/') !== -1) {
-      var xhrSelf = this;
       var origOnReady = xhrSelf.onreadystatechange;
       xhrSelf.onreadystatechange = function () {
         if (xhrSelf.readyState === 4 && xhrSelf.status === 200) {
@@ -496,7 +561,7 @@ var CONFIG_KEY = 'kook_purifier_config';
       '  position: absolute;' +
       '  top: calc(100% + 5px);' +
       '  right: 0;' +
-      '  width: 260px;' +
+      '  width: 275px;' +
       '  background: #1e2025;' +
       '  border: 1px solid #363a43;' +
       '  border-radius: 6px;' +
@@ -668,6 +733,14 @@ var CONFIG_KEY = 'kook_purifier_config';
         '<label class="kp-panel-item">' +
           '<div class="kp-item-info"><span>界面广告屏蔽</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="blockAds" class="kp-switch"' + (currentConfig.blockAds ? ' checked' : '') + ' />' +
+        '</label>' +
+        '<label class="kp-panel-item">' +
+          '<div class="kp-item-info"><span>网络广告拦截</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<input type="checkbox" data-key="blockNetworkAds" class="kp-switch"' + (currentConfig.blockNetworkAds ? ' checked' : '') + ' />' +
+        '</label>' +
+        '<label class="kp-panel-item">' +
+          '<div class="kp-item-info"><span>禁用数据上报</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<input type="checkbox" data-key="blockTelemetry" class="kp-switch"' + (currentConfig.blockTelemetry ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
           '<div class="kp-item-info"><span>跳过启动发现页</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
@@ -1524,6 +1597,40 @@ li:has(> div[class*="daily-task"]) {
   height: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
+}
+
+/* --- 用户菜单推广入口（KOOK加速器、道具商城） --- */
+.user-setting-menu-item:has(.menu-inner-button),
+.user-setting-menu-item:has([class*="ShopSvgIcon"]),
+.user-setting-menu-item:has(svg.shop-svg-icon),
+.user-setting-menu-item:has(.tag) {
+  display: none !important;
+}
+
+/* --- 迅游加速器联运层 --- */
+.xunyou-bg-image-layer,
+.xunyou-bg-mask-layer,
+.xunyou-content-layer,
+.accelerator-logo {
+  display: none !important;
+}
+
+/* --- 顶栏道具商城悬浮气泡容器 --- */
+.shop-icon-tooltip-big,
+.shop-icon-tooltip-big-content,
+.shop-icon-tooltip-small,
+.shop-icon-tooltip-small-content,
+.shop-close-icon {
+  display: none !important;
+}
+
+/* --- 游戏日报与带货抽奖卡片 --- */
+.kk-daily-root,
+.kk-daily,
+.kk-daily-password-card,
+.kk-daily-ammo-card,
+.kk-daily-data-row {
+  display: none !important;
 }
 `;
 document.head.appendChild(s);
