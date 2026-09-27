@@ -469,7 +469,7 @@
       if (!el) {
         el = document.createElement('style');
         el.id = styleId;
-        el.textContent = '#icon-server-search, #icon-button-icon-server-search, [path="/discover"] { display: none !important; }';
+        el.textContent = '#icon-server-search, #icon-button-icon-server-search, [iconid="icon-server-search"], [path="/discover"], a[href="/discover"] { display: none !important; }';
         (document.head || document.documentElement).appendChild(el);
       }
     } else if (el) {

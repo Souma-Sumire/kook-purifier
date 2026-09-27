@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.2.8
+// @version      1.2.9
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -483,7 +483,7 @@ var CONFIG_KEY = 'kook_purifier_config';
       if (!el) {
         el = document.createElement('style');
         el.id = styleId;
-        el.textContent = '#icon-server-search, #icon-button-icon-server-search, [path="/discover"] { display: none !important; }';
+        el.textContent = '#icon-server-search, #icon-button-icon-server-search, [iconid="icon-server-search"], [path="/discover"], a[href="/discover"] { display: none !important; }';
         (document.head || document.documentElement).appendChild(el);
       }
     } else if (el) {
@@ -1517,8 +1517,6 @@ div[class*="badge-item"],
 
 /* --- 其他推广 --- */
 #icon-app-download,
-#icon-server-search,
-[iconid="icon-server-search"],
 div.voice-icon.screen,
 div.text-channel-unread-icon,
 div.guild-unread-icon,
