@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.2.6
+// @version      1.2.7
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -20,7 +20,6 @@ var CONFIG_KEY = 'kook_purifier_config';
     replaceJoinSound: true,
     purifyVip: true,
     blockAds: true,
-    blockNetworkAds: true,
     blockTelemetry: true,
     enableDevTools: true,
     noStreamer: true,
@@ -193,7 +192,7 @@ var CONFIG_KEY = 'kook_purifier_config';
       return origFetch.apply(this, arguments);
     }
 
-    if (currentConfig.blockNetworkAds && isAdNetworkUrl(s)) {
+    if (currentConfig.blockAds && isAdNetworkUrl(s)) {
       if (s.indexOf('.js') !== -1) {
         return Promise.resolve(new Response('', { status: 200, headers: { 'content-type': 'application/javascript' } }));
       }
@@ -234,7 +233,7 @@ var CONFIG_KEY = 'kook_purifier_config';
     var self = this;
     self._url = url || '';
     self._isLiveOrRtc = isLiveOrRtcUrl(self._url);
-    self._isAdBlocked = !self._isLiveOrRtc && currentConfig.blockNetworkAds && isAdNetworkUrl(self._url);
+    self._isAdBlocked = !self._isLiveOrRtc && currentConfig.blockAds && isAdNetworkUrl(self._url);
     self._isTelemetryBlocked = !self._isLiveOrRtc && currentConfig.blockTelemetry && isTelemetryUrl(self._url);
     return origOpen.apply(this, arguments);
   };
@@ -561,7 +560,7 @@ var CONFIG_KEY = 'kook_purifier_config';
       '  position: absolute;' +
       '  top: calc(100% + 5px);' +
       '  right: 0;' +
-      '  width: 275px;' +
+      '  width: 310px;' +
       '  background: #1e2025;' +
       '  border: 1px solid #363a43;' +
       '  border-radius: 6px;' +
@@ -731,19 +730,15 @@ var CONFIG_KEY = 'kook_purifier_config';
           '<input type="checkbox" data-key="replaceJoinSound" class="kp-switch"' + (currentConfig.replaceJoinSound ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>界面广告屏蔽</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>广告与推广拦截</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="blockAds" class="kp-switch"' + (currentConfig.blockAds ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>网络广告拦截</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
-          '<input type="checkbox" data-key="blockNetworkAds" class="kp-switch"' + (currentConfig.blockNetworkAds ? ' checked' : '') + ' />' +
-        '</label>' +
-        '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>禁用数据上报</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>禁用数据与行为上报</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="blockTelemetry" class="kp-switch"' + (currentConfig.blockTelemetry ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>跳过启动发现页</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>跳过发现推广页（含侧栏入口）</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="skipDiscoverOnStartup" class="kp-switch"' + (currentConfig.skipDiscoverOnStartup ? ' checked' : '') + ' />' +
         '</label>' +
         devToolsHtml +
