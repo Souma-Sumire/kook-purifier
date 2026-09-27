@@ -350,38 +350,42 @@
       '}' +
       '#kp-settings-root.kp-fallback-mode {' +
       '  position: fixed;' +
-      '  top: 7px;' +
-      '  right: 16px;' +
+      '  top: 8px;' +
+      '  right: 14px;' +
       '  z-index: 999999;' +
       '}' +
       '#kp-settings-btn {' +
-      '  background: #26282d;' +
-      '  border: 1px solid #3c414c;' +
-      '  border-radius: 4px;' +
-      '  color: #e4e7ed;' +
-      '  padding: 0 9px;' +
+      '  background: transparent !important;' +
+      '  border: none !important;' +
+      '  border-radius: 6px !important;' +
+      '  color: var(--color-text-tertiary, #8a8e99) !important;' +
+      '  padding: 0 !important;' +
+      '  width: 24px !important;' +
+      '  height: 24px !important;' +
+      '  min-width: 24px !important;' +
       '  cursor: pointer;' +
-      '  display: inline-flex;' +
-      '  align-items: center;' +
-      '  gap: 4px;' +
-      '  height: 24px;' +
+      '  display: inline-flex !important;' +
+      '  align-items: center !important;' +
+      '  justify-content: center !important;' +
       '  box-sizing: border-box;' +
       '  outline: none;' +
-      '  font-size: 12px;' +
-      '  font-weight: 500;' +
-      '  letter-spacing: 0.2px;' +
-      '  transition: all 0.15s ease;' +
+      '  opacity: 0.72;' +
+      '  transition: color 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;' +
       '  -webkit-app-region: no-drag !important;' +
       '}' +
       '#kp-settings-btn:hover {' +
-      '  background: #30333b;' +
-      '  border-color: #525866;' +
-      '  color: #ffffff;' +
+      '  background: rgba(255, 255, 255, 0.08) !important;' +
+      '  color: var(--color-text-secondary, #e0e3ea) !important;' +
+      '  opacity: 1;' +
       '}' +
-      '#kp-settings-btn .kp-arrow {' +
-      '  font-size: 9px;' +
-      '  color: #a4a9b6;' +
-      '  margin-left: 2px;' +
+      '#kp-settings-btn.kp-active {' +
+      '  background: rgba(255, 255, 255, 0.12) !important;' +
+      '  color: #ffffff !important;' +
+      '  opacity: 1;' +
+      '}' +
+      '#kp-settings-btn svg {' +
+      '  display: block;' +
+      '  pointer-events: none;' +
       '}' +
       '#kp-settings-panel {' +
       '  position: absolute;' +
@@ -542,8 +546,11 @@
     var container = document.createElement('div');
     container.id = 'kp-settings-root';
     container.innerHTML =
-      '<button id="kp-settings-btn" type="button" title="KOOK 净化设置">' +
-        '<span>净化设置</span><span class="kp-arrow">▾</span>' +
+      '<button id="kp-settings-btn" class="win-title-bar-icon" type="button" title="KOOK 净化设置" aria-label="KOOK 净化设置">' +
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' +
+          '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' +
+          '<path d="M9 12l2 2 4-4"/>' +
+        '</svg>' +
       '</button>' +
       '<div id="kp-settings-panel">' +
         '<div class="kp-panel-header">' +
@@ -575,7 +582,8 @@
 
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
-      panel.classList.toggle('kp-show');
+      var show = panel.classList.toggle('kp-show');
+      btn.classList.toggle('kp-active', show);
     });
 
     panel.addEventListener('click', function (e) {
@@ -584,6 +592,7 @@
 
     document.addEventListener('click', function () {
       panel.classList.remove('kp-show');
+      btn.classList.remove('kp-active');
     });
 
     if (reloadBtn) {
