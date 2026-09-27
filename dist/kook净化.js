@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.2.9
+// @version      1.2.12
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -702,21 +702,21 @@ var CONFIG_KEY = 'kook_purifier_config';
 
     var devToolsHtml = isElectron
       ? '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>F12 开发者工具</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>开发者工具 (F12)</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="enableDevTools" class="kp-switch"' + (currentConfig.enableDevTools ? ' checked' : '') + ' />' +
         '</label>'
       : '';
 
     var noStreamerHtml = isElectron
       ? '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>禁用主播检测</span><span class="kp-badge kp-badge-restart">需重启</span></div>' +
+          '<div class="kp-item-info"><span>主播检测拦截</span><span class="kp-badge kp-badge-restart">需重启</span></div>' +
           '<input type="checkbox" data-key="noStreamer" class="kp-switch"' + (currentConfig.noStreamer ? ' checked' : '') + ' />' +
         '</label>'
       : '';
 
     var footerNote = isElectron
-      ? '提示：需刷新或需重启的项在变更后需重载应用'
-      : '提示：需刷新的项在变更后需重新加载页面';
+      ? '提示：部分选项在重载应用后生效'
+      : '提示：部分选项在刷新页面后生效';
 
     var container = document.createElement('div');
     container.id = 'kp-settings-root';
@@ -732,30 +732,30 @@ var CONFIG_KEY = 'kook_purifier_config';
           '<span>净化功能设置</span>' +
         '</div>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>入场音效替换</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>默认入场音效</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="replaceJoinSound" class="kp-switch"' + (currentConfig.replaceJoinSound ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>广告与推广拦截</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>广告推广拦截</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="blockAds" class="kp-switch"' + (currentConfig.blockAds ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>禁用数据与行为上报</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>数据上报拦截</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="blockTelemetry" class="kp-switch"' + (currentConfig.blockTelemetry ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>跳过发现推广页（含侧栏入口）</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>屏蔽发现页</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="skipDiscoverOnStartup" class="kp-switch"' + (currentConfig.skipDiscoverOnStartup ? ' checked' : '') + ' />' +
         '</label>' +
         devToolsHtml +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>VIP与装扮净化</span><span class="kp-badge kp-badge-refresh">需刷新</span></div>' +
+          '<div class="kp-item-info"><span>VIP装扮净化</span><span class="kp-badge kp-badge-refresh">需刷新</span></div>' +
           '<input type="checkbox" data-key="purifyVip" class="kp-switch"' + (currentConfig.purifyVip ? ' checked' : '') + ' />' +
         '</label>' +
         noStreamerHtml +
         '<div class="kp-panel-footer">' +
           '<div class="kp-footer-note">' + footerNote + '</div>' +
-          '<button id="kp-reload-btn" type="button" class="kp-reload-btn">重载页面 (Ctrl+R)</button>' +
+          '<button id="kp-reload-btn" type="button" class="kp-reload-btn">' + (isElectron ? '重载应用 (Ctrl+R)' : '刷新页面 (F5)') + '</button>' +
         '</div>' +
       '</div>';
 
@@ -1446,6 +1446,87 @@ div[class*="badge-item"],
 .intimacy-tag {
   display: none !important;
 }
+
+/* --- 设置页与我的背包：恢复用户资产与道具卡片预览正常展示 --- */
+.setting-page .prop-image-layer,
+.setting-page .prop-icon,
+.setting-page .prop-item,
+.setting-page .prop-item-img-bg,
+.setting-page .action-prop-list,
+.setting-page .action-prop-item,
+.setting-page .action-props-box,
+.setting-page .goods-prop,
+.setting-page .action-prop-img,
+.setting-page .image-bg-layer,
+.setting-page .image-contont-layer,
+.setting-page img.kook-avatar-frame-static,
+.setting-page img.kook-avatar-frame-animate,
+.setting-page .kook-avatar-frame-static,
+.setting-page .kook-avatar-frame-animate,
+.setting-page .kook-avatar-frame,
+.setting-page [class*="avatar-frame"],
+.setting-page [class*="kook-avatar-frame"],
+.setting-page .namepalte-item,
+.setting-page .namepalte-item-animate,
+.setting-page .namepalte-item-static,
+.setting-page .nameplate,
+.setting-page .s_nameplate,
+.setting-page div[class*="nameplate"],
+.setting-page div[class*="namepalte"],
+.setting-page img[src*="nameplate"],
+.setting-page img[src*="s_nameplate"],
+.setting-page .badge-list,
+.setting-page .badge-item,
+.setting-page div[class*="badge-list"],
+.setting-page div[class*="badge-item"],
+.setting-page .meme-item-container,
+.setting-page .meme-item,
+.setting-page div[class*="meme-item"],
+.setting-page .prizes-decorate,
+.setting-page .kook-prizes-decorate,
+.setting-page .prize-item,
+.setting-page [class*="prizes-decorate"],
+.setting-page-mask .prop-image-layer,
+.setting-page-mask .prop-icon,
+.setting-page-mask .prop-item,
+.setting-page-mask .prop-item-img-bg,
+.setting-page-mask .action-prop-list,
+.setting-page-mask .action-prop-item,
+.setting-page-mask .action-props-box,
+.setting-page-mask .goods-prop,
+.setting-page-mask .action-prop-img,
+.setting-page-mask .image-bg-layer,
+.setting-page-mask .image-contont-layer,
+.setting-page-mask img.kook-avatar-frame-static,
+.setting-page-mask img.kook-avatar-frame-animate,
+.setting-page-mask .kook-avatar-frame-static,
+.setting-page-mask .kook-avatar-frame-animate,
+.setting-page-mask .kook-avatar-frame,
+.setting-page-mask [class*="avatar-frame"],
+.setting-page-mask [class*="kook-avatar-frame"],
+.setting-page-mask .namepalte-item,
+.setting-page-mask .namepalte-item-animate,
+.setting-page-mask .namepalte-item-static,
+.setting-page-mask .nameplate,
+.setting-page-mask .s_nameplate,
+.setting-page-mask div[class*="nameplate"],
+.setting-page-mask div[class*="namepalte"],
+.setting-page-mask img[src*="nameplate"],
+.setting-page-mask img[src*="s_nameplate"],
+.setting-page-mask .badge-list,
+.setting-page-mask .badge-item,
+.setting-page-mask div[class*="badge-list"],
+.setting-page-mask div[class*="badge-item"],
+.setting-page-mask .meme-item-container,
+.setting-page-mask .meme-item,
+.setting-page-mask div[class*="meme-item"],
+.setting-page-mask .prizes-decorate,
+.setting-page-mask .kook-prizes-decorate,
+.setting-page-mask .prize-item,
+.setting-page-mask [class*="prizes-decorate"] {
+  display: revert !important;
+}
+
 
 /* --- 用户资料卡横幅：保留基础布局避免头像与卡片塌陷，净化装扮大图与动态背景 --- */
 .user-banner.has-banner {
