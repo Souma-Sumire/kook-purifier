@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.2.7
+// @version      1.2.8
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -187,23 +187,27 @@ var CONFIG_KEY = 'kook_purifier_config';
   // Hook Fetch 接口
   var origFetch = window.fetch;
   window.fetch = function (url, options) {
-    var s = typeof url === 'string' ? url : (url && url.url) || '';
-    if (isLiveOrRtcUrl(s)) {
-      return origFetch.apply(this, arguments);
-    }
-
-    if (currentConfig.blockAds && isAdNetworkUrl(s)) {
-      if (s.indexOf('.js') !== -1) {
-        return Promise.resolve(new Response('', { status: 200, headers: { 'content-type': 'application/javascript' } }));
+    try {
+      var s = typeof url === 'string' ? url : (url && url.url) || '';
+      if (isLiveOrRtcUrl(s)) {
+        return origFetch.apply(this, arguments);
       }
-      return Promise.resolve(new Response('{"code":0,"message":"success","data":[]}', {
-        status: 200,
-        headers: { 'content-type': 'application/json' }
-      }));
-    }
 
-    if (currentConfig.blockTelemetry && isTelemetryUrl(s)) {
-      return Promise.resolve(new Response('', { status: 204, statusText: 'No Content' }));
+      if (currentConfig.blockAds && isAdNetworkUrl(s)) {
+        if (s.indexOf('.js') !== -1) {
+          return Promise.resolve(new Response('', { status: 200, headers: { 'content-type': 'application/javascript' } }));
+        }
+        return Promise.resolve(new Response('{"code":0,"message":"success","data":[]}', {
+          status: 200,
+          headers: { 'content-type': 'application/json' }
+        }));
+      }
+
+      if (currentConfig.blockTelemetry && isTelemetryUrl(s)) {
+        return Promise.resolve(new Response('', { status: 200, statusText: 'OK' }));
+      }
+    } catch (_) {
+      return origFetch.apply(this, arguments);
     }
 
     return origFetch.apply(this, arguments).then(function (res) {
@@ -224,6 +228,8 @@ var CONFIG_KEY = 'kook_purifier_config';
         });
       }
       return res;
+    }).catch(function (err) {
+      return Promise.reject(err);
     });
   };
 
@@ -1627,6 +1633,23 @@ li:has(> div[class*="daily-task"]) {
 .kk-daily-data-row {
   display: none !important;
 }
+
+/* --- 错误提示页对比度加固（避免无暗色主题类名时白底白字失明） --- */
+.kaihei-error-page {
+  background-color: #1e2025 !important;
+  color: #dcddde !important;
+}
+.kaihei-error-page .error-page-title {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+.kaihei-error-page .error-page-content {
+  color: #b9bbbe !important;
+}
+.kaihei-error-page .error-page-exit {
+  color: #8e9297 !important;
+}
+
 `;
 document.head.appendChild(s);
 console.log("[KOOK净化]");

@@ -173,23 +173,27 @@
   // Hook Fetch 接口
   var origFetch = window.fetch;
   window.fetch = function (url, options) {
-    var s = typeof url === 'string' ? url : (url && url.url) || '';
-    if (isLiveOrRtcUrl(s)) {
-      return origFetch.apply(this, arguments);
-    }
-
-    if (currentConfig.blockAds && isAdNetworkUrl(s)) {
-      if (s.indexOf('.js') !== -1) {
-        return Promise.resolve(new Response('', { status: 200, headers: { 'content-type': 'application/javascript' } }));
+    try {
+      var s = typeof url === 'string' ? url : (url && url.url) || '';
+      if (isLiveOrRtcUrl(s)) {
+        return origFetch.apply(this, arguments);
       }
-      return Promise.resolve(new Response('{"code":0,"message":"success","data":[]}', {
-        status: 200,
-        headers: { 'content-type': 'application/json' }
-      }));
-    }
 
-    if (currentConfig.blockTelemetry && isTelemetryUrl(s)) {
-      return Promise.resolve(new Response('', { status: 204, statusText: 'No Content' }));
+      if (currentConfig.blockAds && isAdNetworkUrl(s)) {
+        if (s.indexOf('.js') !== -1) {
+          return Promise.resolve(new Response('', { status: 200, headers: { 'content-type': 'application/javascript' } }));
+        }
+        return Promise.resolve(new Response('{"code":0,"message":"success","data":[]}', {
+          status: 200,
+          headers: { 'content-type': 'application/json' }
+        }));
+      }
+
+      if (currentConfig.blockTelemetry && isTelemetryUrl(s)) {
+        return Promise.resolve(new Response('', { status: 200, statusText: 'OK' }));
+      }
+    } catch (_) {
+      return origFetch.apply(this, arguments);
     }
 
     return origFetch.apply(this, arguments).then(function (res) {
@@ -210,6 +214,8 @@
         });
       }
       return res;
+    }).catch(function (err) {
+      return Promise.reject(err);
     });
   };
 
