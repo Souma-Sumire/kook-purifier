@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.2.2
+// @version      1.2.4
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -48,6 +48,79 @@ var CONFIG_KEY = 'kook_purifier_config';
       localStorage.setItem(CONFIG_KEY, JSON.stringify(currentConfig));
     } catch (_) {}
   }
+
+  // 启动时如果默认落在发现/推广页面，自动切换到主页
+  function isPromotionView() {
+    var path = (window.location && window.location.pathname) || '';
+    var p = path.toLowerCase();
+    if (p.indexOf('/discover') !== -1 || p.indexOf('/activity') !== -1 || p.indexOf('/eventcenter') !== -1) {
+      return true;
+    }
+    return Boolean(document.querySelector('#discover-page, .discover-page, .discover-page-layout'));
+  }
+
+  function triggerElementClick(el) {
+    if (!el) return false;
+    try {
+      el.click();
+    } catch (_) {}
+    try {
+      var opts = { bubbles: true, cancelable: true, view: window };
+      el.dispatchEvent(new MouseEvent('mousedown', opts));
+      el.dispatchEvent(new MouseEvent('mouseup', opts));
+      el.dispatchEvent(new MouseEvent('click', opts));
+    } catch (_) {}
+    try {
+      for (var key in el) {
+        if (key.indexOf('__reactProps') === 0 || key.indexOf('__reactEventHandlers') === 0) {
+          if (el[key] && typeof el[key].onClick === 'function') {
+            el[key].onClick({ stopPropagation: function () {}, preventDefault: function () {} });
+            return true;
+          }
+        }
+      }
+    } catch (_) {}
+    return true;
+  }
+
+  var startupRedirectHandled = false;
+  var startupAttempts = 0;
+  function ensureDefaultHomeView() {
+    if (!currentConfig.blockAds || startupRedirectHandled) return;
+    startupAttempts++;
+
+    var currentPath = (window.location && window.location.pathname) || '';
+    if (currentPath.indexOf('/channels') !== -1 || currentPath.indexOf('/home') !== -1) {
+      startupRedirectHandled = true;
+      return;
+    }
+
+    if (isPromotionView() || currentPath === '/' || currentPath === '/app' || currentPath === '/app/') {
+      var homeBtn = document.querySelector('#app-home, #icon-button-app-home, [iconid="app-home"]') ||
+                    document.querySelector('.app-left .top .menu-icon-item');
+      if (homeBtn) {
+        triggerElementClick(homeBtn);
+        var subBtn = homeBtn.querySelector('.icon-button, .clip-button-wrap');
+        if (subBtn) triggerElementClick(subBtn);
+      }
+    }
+
+    if (startupAttempts >= 20) {
+      startupRedirectHandled = true;
+    }
+  }
+
+  var startupTimer = setInterval(function () {
+    if (startupRedirectHandled) {
+      clearInterval(startupTimer);
+      return;
+    }
+    ensureDefaultHomeView();
+  }, 250);
+
+  setTimeout(function () {
+    clearInterval(startupTimer);
+  }, 6000);
 
   // 净化字符串形式的 JSON 数据，避免使用 JSON.parse 导致 64 位大整数 Snowflake ID 截断
   function purifyJsonString(str) {
@@ -1346,6 +1419,8 @@ div[class*="badge-item"],
 
 /* --- 其他推广 --- */
 #icon-app-download,
+#icon-server-search,
+[iconid="icon-server-search"],
 div.voice-icon.screen,
 div.text-channel-unread-icon,
 div.guild-unread-icon,
