@@ -688,21 +688,21 @@
 
     var devToolsHtml = isElectron
       ? '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>F12 开发者工具</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>开发者工具 (F12)</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="enableDevTools" class="kp-switch"' + (currentConfig.enableDevTools ? ' checked' : '') + ' />' +
         '</label>'
       : '';
 
     var noStreamerHtml = isElectron
       ? '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>禁用主播检测</span><span class="kp-badge kp-badge-restart">需重启</span></div>' +
+          '<div class="kp-item-info"><span>主播检测拦截</span><span class="kp-badge kp-badge-restart">需重启</span></div>' +
           '<input type="checkbox" data-key="noStreamer" class="kp-switch"' + (currentConfig.noStreamer ? ' checked' : '') + ' />' +
         '</label>'
       : '';
 
     var footerNote = isElectron
-      ? '提示：需刷新或需重启的项在变更后需重载应用'
-      : '提示：需刷新的项在变更后需重新加载页面';
+      ? '提示：部分选项在重载应用后生效'
+      : '提示：部分选项在刷新页面后生效';
 
     var container = document.createElement('div');
     container.id = 'kp-settings-root';
@@ -718,30 +718,30 @@
           '<span>净化功能设置</span>' +
         '</div>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>入场音效替换</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>默认入场音效</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="replaceJoinSound" class="kp-switch"' + (currentConfig.replaceJoinSound ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>广告与推广拦截</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>广告推广拦截</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="blockAds" class="kp-switch"' + (currentConfig.blockAds ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>禁用数据与行为上报</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>数据上报拦截</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="blockTelemetry" class="kp-switch"' + (currentConfig.blockTelemetry ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>跳过发现推广页（含侧栏入口）</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>屏蔽发现页</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="skipDiscoverOnStartup" class="kp-switch"' + (currentConfig.skipDiscoverOnStartup ? ' checked' : '') + ' />' +
         '</label>' +
         devToolsHtml +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>VIP与装扮净化</span><span class="kp-badge kp-badge-refresh">需刷新</span></div>' +
+          '<div class="kp-item-info"><span>VIP装扮净化</span><span class="kp-badge kp-badge-refresh">需刷新</span></div>' +
           '<input type="checkbox" data-key="purifyVip" class="kp-switch"' + (currentConfig.purifyVip ? ' checked' : '') + ' />' +
         '</label>' +
         noStreamerHtml +
         '<div class="kp-panel-footer">' +
           '<div class="kp-footer-note">' + footerNote + '</div>' +
-          '<button id="kp-reload-btn" type="button" class="kp-reload-btn">重载页面 (Ctrl+R)</button>' +
+          '<button id="kp-reload-btn" type="button" class="kp-reload-btn">' + (isElectron ? '重载应用 (Ctrl+R)' : '刷新页面 (F5)') + '</button>' +
         '</div>' +
       '</div>';
 
