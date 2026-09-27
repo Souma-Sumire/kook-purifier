@@ -187,38 +187,7 @@ walkDir(buildDir, '.htm', (filePath) => {
 });
 log(`Modified ${htmCount} HTML files`);
 
-// --- Patch default startup route in JS bundles ---
-log('Patching default startup route in bundles...');
-let routePatchedCount = 0;
-walkDir(path.join(buildDir, 'static', 'js'), '.js', (filePath) => {
-  let content = fs.readFileSync(filePath, 'utf8');
-  let modified = false;
-  if (/redirectTo\s*:\s*["']\/discover["']/.test(content)) {
-    content = content.replace(/redirectTo\s*:\s*["']\/discover["']/g, 'redirectTo:"/home"');
-    modified = true;
-  }
-  if (/fallbackTo\s*:\s*["']\/discover["']/.test(content)) {
-    content = content.replace(/fallbackTo\s*:\s*["']\/discover["']/g, 'fallbackTo:"/home"');
-    modified = true;
-  }
-  if (/\|\|\s*["']\/discover["']/.test(content)) {
-    content = content.replace(/\|\|\s*["']\/discover["']/g, '||"/home"');
-    modified = true;
-  }
-  if (/pathname\|\|["']\/discover["']/.test(content)) {
-    content = content.replace(/pathname\|\|["']\/discover["']/g, 'pathname||"/home"');
-    modified = true;
-  }
-  if (/\.call\(([a-zA-Z_$][a-zA-Z0-9_$]*),\s*["']\/discover["']\)/.test(content)) {
-    content = content.replace(/\.call\(([a-zA-Z_$][a-zA-Z0-9_$]*),\s*["']\/discover["']\)/g, '.call($1,"/home")');
-    modified = true;
-  }
-  if (modified) {
-    fs.writeFileSync(filePath, content, 'utf8');
-    routePatchedCount++;
-  }
-});
-log(`Patched default route in ${routePatchedCount} JS bundle files`);
+
 
 // --- Disable auto-update ---
 log('Disabling auto-update...');

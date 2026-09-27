@@ -7,7 +7,8 @@
     purifyVip: true,
     blockAds: true,
     enableDevTools: true,
-    noStreamer: true
+    noStreamer: true,
+    skipDiscoverOnStartup: true
   };
 
   function loadConfig() {
@@ -72,7 +73,7 @@
   var startupRedirectHandled = false;
   var startupAttempts = 0;
   function ensureDefaultHomeView() {
-    if (!currentConfig.blockAds || startupRedirectHandled) return;
+    if (!currentConfig.skipDiscoverOnStartup || startupRedirectHandled) return;
     startupAttempts++;
 
     var currentPath = (window.location && window.location.pathname) || '';
@@ -390,6 +391,23 @@
     }
   }
 
+  // 动态同步是否隐藏发现页入口
+  function applySkipDiscoverState() {
+    var styleId = 'kp-hide-discover-entry';
+    var el = document.getElementById(styleId);
+    if (currentConfig.skipDiscoverOnStartup) {
+      if (!el) {
+        el = document.createElement('style');
+        el.id = styleId;
+        el.textContent = '#icon-server-search, #icon-button-icon-server-search, [path="/discover"] { display: none !important; }';
+        (document.head || document.documentElement).appendChild(el);
+      }
+    } else if (el) {
+      el.parentNode.removeChild(el);
+    }
+  }
+  applySkipDiscoverState();
+
   // 右上角功能与设置下拉菜单单例与常驻挂载守护
   var settingsRoot = null;
   var settingsGroup = null;
@@ -637,6 +655,10 @@
           '<div class="kp-item-info"><span>界面广告屏蔽</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="blockAds" class="kp-switch"' + (currentConfig.blockAds ? ' checked' : '') + ' />' +
         '</label>' +
+        '<label class="kp-panel-item">' +
+          '<div class="kp-item-info"><span>跳过启动发现页</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<input type="checkbox" data-key="skipDiscoverOnStartup" class="kp-switch"' + (currentConfig.skipDiscoverOnStartup ? ' checked' : '') + ' />' +
+        '</label>' +
         devToolsHtml +
         '<label class="kp-panel-item">' +
           '<div class="kp-item-info"><span>VIP与装扮净化</span><span class="kp-badge kp-badge-refresh">需刷新</span></div>' +
@@ -683,6 +705,8 @@
           saveConfig();
           if (key === 'blockAds') {
             applyAdBlockState();
+          } else if (key === 'skipDiscoverOnStartup') {
+            applySkipDiscoverState();
           } else if (key === 'enableDevTools') {
             syncDevToolsStateToMain();
           }
