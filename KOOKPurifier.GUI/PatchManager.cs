@@ -254,7 +254,22 @@ namespace KOOKPurifier.GUI
                 if (Directory.Exists(buildDir))
                     PatchWebapp(buildDir, options, log);
 
-                // 5. 打包重装 app.asar
+                // 5. 清理冗余调试文件与广告页面瘦身
+                try
+                {
+                    foreach (string mapFile in Directory.GetFiles(tempSrcDir, "*.map", SearchOption.AllDirectories))
+                    {
+                        try { File.Delete(mapFile); } catch { }
+                    }
+                    string expDir = Path.Combine(buildDir, "exp");
+                    if (Directory.Exists(expDir))
+                    {
+                        try { Directory.Delete(expDir, true); } catch { }
+                    }
+                }
+                catch { }
+
+                // 6. 打包重装 app.asar
                 log("[信息] 正在重新打包 app.asar ...");
                 AsarEngine.Pack(tempSrcDir, asarPath);
                 log("[信息] 打包成功: app.asar");

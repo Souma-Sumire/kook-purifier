@@ -230,7 +230,7 @@ if (fs.existsSync(noStreamerJs)) fs.copyFileSync(noStreamerJs, path.join(buildDi
 log('Modifying HTML entry files...');
 const injectHead = '<link rel="stylesheet" href="/app/kook-adblock.css"><script src="/app/kook-enhance.js"></script><script src="/app/kook-no-streamer-mode.js"></script></head>';
 let htmCount = 0;
-walkDir(buildDir, '.htm', (filePath) => {
+walkDir(buildDir, (p) => p.endsWith('.htm') || p.endsWith('.html'), (filePath) => {
   let content = fs.readFileSync(filePath, 'utf8');
   let modified = false;
   if (content.includes('hm.baidu.com')) {
@@ -248,7 +248,15 @@ walkDir(buildDir, '.htm', (filePath) => {
 });
 log(`Modified ${htmCount} HTML files`);
 
-
+// --- Clean up bloated source maps & ad files ---
+log('Cleaning up bloated source maps and ad pages...');
+walkDir(appSrc, '.map', (mapFile) => {
+  try { fs.unlinkSync(mapFile); } catch (_) {}
+});
+const expDir = path.join(buildDir, 'exp');
+if (fs.existsSync(expDir)) {
+  try { fs.rmSync(expDir, { recursive: true, force: true }); } catch (_) {}
+}
 
 // --- Disable auto-update ---
 log('Disabling auto-update...');
@@ -297,11 +305,16 @@ function copyDirSync(src, dest) {
   }
 }
 
-function walkDir(dir, ext, cb) {
+function walkDir(dir, filter, cb) {
   if (!fs.existsSync(dir)) return;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) walkDir(p, ext, cb);
-    else if (entry.name.endsWith(ext)) cb(p);
+    if (entry.isDirectory()) {
+      walkDir(p, filter, cb);
+    } else {
+      const match = typeof filter === 'function' ? filter(p) : p.endsWith(filter);
+      if (match) cb(p);
+    }
   }
 }
+
