@@ -353,16 +353,32 @@
   }
 
 
-  // 个性化/装扮提示音 Hook（还原为默认入场/提示音）
+  // 原生提示音还原与商业化提示音屏蔽 Hook
   var DEFAULT_JOIN_SOUND = 'https://static.kookapp.cn/app/assets/audio/user-join.mp3';
+  var DEFAULT_LEAVE_SOUND = 'https://static.kookapp.cn/app/assets/audio/user-leave.mp3';
+  var SILENT_AUDIO = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+
   var soundPatterns = [
     /\/assets\/item\/resources\/.+\.mp3/i,
     /resources\/.+_notifications?_.+\.mp3/i
   ];
+  var commercialSoundPattern = /assets\/audio\/(new-order|order_remind)\.mp3/i;
 
   function sanitizeAudioUrl(url) {
     if (!currentConfig.replaceJoinSound) return url;
-    if (typeof url === 'string' && soundPatterns.some(function (re) { return re.test(url); })) {
+    if (typeof url !== 'string' || !url) return url;
+
+    // 屏蔽隐藏商业化陪玩订单提示音（官方设置中隐藏开关但默认强开）
+    if (commercialSoundPattern.test(url)) {
+      return SILENT_AUDIO;
+    }
+
+    // 个性化/装扮提示音：区分进房与退房语义
+    if (soundPatterns.some(function (re) { return re.test(url); })) {
+      var lower = url.toLowerCase();
+      if (lower.indexOf('leave') !== -1 || lower.indexOf('exit') !== -1 || lower.indexOf('quit') !== -1) {
+        return DEFAULT_LEAVE_SOUND;
+      }
       return DEFAULT_JOIN_SOUND;
     }
     return url;
@@ -415,6 +431,9 @@
       var preloadAudio = new OrigAudio(DEFAULT_JOIN_SOUND);
       preloadAudio.preload = 'auto';
       preloadAudio.load();
+      var preloadLeave = new OrigAudio(DEFAULT_LEAVE_SOUND);
+      preloadLeave.preload = 'auto';
+      preloadLeave.load();
     } catch (_) {}
   }
 
@@ -717,7 +736,7 @@
           '<span>净化功能设置</span>' +
         '</div>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>默认入场音效</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>原生提示音效</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="replaceJoinSound" class="kp-switch"' + (currentConfig.replaceJoinSound ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
