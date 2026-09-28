@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.2.12
+// @version      1.2.13
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -165,11 +165,9 @@ var CONFIG_KEY = 'kook_purifier_config';
            u.indexOf('ssp_ad_sdk') !== -1 ||
            u.indexOf('mediav.com') !== -1 ||
            u.indexOf('xubei-products') !== -1 ||
-           u.indexOf('promotion/first-record-popup-view') !== -1 ||
-           u.indexOf('promotion/manual-complete-task') !== -1 ||
-           u.indexOf('promotion/ongoing') !== -1 ||
-           u.indexOf('promotion/task') !== -1 ||
-           u.indexOf('promotion/accept-task') !== -1;
+           u.indexOf('order/blind-box-log-by-code') !== -1 ||
+           u.indexOf('acc.kookapp.cn') !== -1 ||
+           u.indexOf('promotion/') !== -1;
   }
 
   // 判定是否为数据统计、埋点上报、Sentry 监控或营销归因请求
@@ -181,7 +179,8 @@ var CONFIG_KEY = 'kook_purifier_config';
            u.indexOf('log.kookapp.cn') !== -1 ||
            u.indexOf('sentry') !== -1 ||
            u.indexOf('user/utm') !== -1 ||
-           u.indexOf('report-activity') !== -1;
+           u.indexOf('report-activity') !== -1 ||
+           u.indexOf('qos/experience') !== -1;
   }
 
   // Hook Fetch 接口
@@ -368,16 +367,32 @@ var CONFIG_KEY = 'kook_purifier_config';
   }
 
 
-  // 个性化/装扮提示音 Hook（还原为默认入场/提示音）
+  // 原生提示音还原与商业化提示音屏蔽 Hook
   var DEFAULT_JOIN_SOUND = 'https://static.kookapp.cn/app/assets/audio/user-join.mp3';
+  var DEFAULT_LEAVE_SOUND = 'https://static.kookapp.cn/app/assets/audio/user-leave.mp3';
+  var SILENT_AUDIO = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+
   var soundPatterns = [
     /\/assets\/item\/resources\/.+\.mp3/i,
     /resources\/.+_notifications?_.+\.mp3/i
   ];
+  var commercialSoundPattern = /assets\/audio\/(new-order|order_remind)\.mp3/i;
 
   function sanitizeAudioUrl(url) {
     if (!currentConfig.replaceJoinSound) return url;
-    if (typeof url === 'string' && soundPatterns.some(function (re) { return re.test(url); })) {
+    if (typeof url !== 'string' || !url) return url;
+
+    // 屏蔽隐藏商业化陪玩订单提示音（官方设置中隐藏开关但默认强开）
+    if (commercialSoundPattern.test(url)) {
+      return SILENT_AUDIO;
+    }
+
+    // 个性化/装扮提示音：区分进房与退房语义
+    if (soundPatterns.some(function (re) { return re.test(url); })) {
+      var lower = url.toLowerCase();
+      if (lower.indexOf('leave') !== -1 || lower.indexOf('exit') !== -1 || lower.indexOf('quit') !== -1) {
+        return DEFAULT_LEAVE_SOUND;
+      }
       return DEFAULT_JOIN_SOUND;
     }
     return url;
@@ -430,6 +445,9 @@ var CONFIG_KEY = 'kook_purifier_config';
       var preloadAudio = new OrigAudio(DEFAULT_JOIN_SOUND);
       preloadAudio.preload = 'auto';
       preloadAudio.load();
+      var preloadLeave = new OrigAudio(DEFAULT_LEAVE_SOUND);
+      preloadLeave.preload = 'auto';
+      preloadLeave.load();
     } catch (_) {}
   }
 
@@ -732,7 +750,7 @@ var CONFIG_KEY = 'kook_purifier_config';
           '<span>净化功能设置</span>' +
         '</div>' +
         '<label class="kp-panel-item">' +
-          '<div class="kp-item-info"><span>默认入场音效</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
+          '<div class="kp-item-info"><span>原生提示音效</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="replaceJoinSound" class="kp-switch"' + (currentConfig.replaceJoinSound ? ' checked' : '') + ' />' +
         '</label>' +
         '<label class="kp-panel-item">' +
@@ -1116,6 +1134,8 @@ div[class*="guild-banner-box"],
 .discover-goods-ad,
 .discover-goods-ad-border,
 .discover-goods-ad-img,
+.discover-goods-ad-img-close,
+.discover-goods-ad-img-content,
 .guide-banner-container,
 .robot-home-dialog-banner,
 .recording-ctrl-panel-banner {
@@ -1712,6 +1732,44 @@ li:has(> div[class*="daily-task"]) {
 .kk-daily-data-row {
   display: none !important;
 }
+
+/* --- VIP 转化诱导与特权推广提示 --- */
+.upload-preview-buy-vip,
+.setting-buy-vip,
+.setting-buy-vip-expire,
+.kmp_vip_tips,
+.kmp_vip_tips_link,
+.kmp_vip_tips_parent,
+.kpm-vip-top-parent {
+  display: none !important;
+}
+
+/* --- 服务器助力购买弹窗与引导 --- */
+.dialog-guild-boost-contain,
+.guild-boost-use-buy,
+.GuildBoostDialog {
+  display: none !important;
+}
+
+/* --- 合作渠道引流与外链下载推广 --- */
+.shunwang-login-risk-tip__download,
+.shunwang-mobile-app-top-bar__download,
+.netbar-scan-login-dialog__download,
+.mobile-app-download-guide-qr,
+.chose-install-dialog,
+.chose-install-head,
+.chose-install-body {
+  display: none !important;
+}
+
+/* --- 广告与商业推广动态悬浮气泡/弹层 --- */
+.float-popup-wrapper:has([class*="promotion"]),
+.float-popup-wrapper:has([class*="ad"]),
+.float-popup-wrapper:has([class*="MallTips"]),
+.MallTipsPopUp {
+  display: none !important;
+}
+
 
 /* --- 错误提示页对比度加固（避免无暗色主题类名时白底白字失明） --- */
 .kaihei-error-page {
