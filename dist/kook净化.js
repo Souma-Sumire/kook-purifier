@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.2.15
+// @version      1.2.16
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -1035,6 +1035,16 @@ function isNoStreamerEnabled() {
 const s = document.createElement("style");
 s.setAttribute("data-kook-adblock", "true");
 s.textContent = `
+/* ==========================================================================
+   KOOK Purifier — 广告/推广拦截样式
+   重构原则：
+   · 仅使用语义 class 选择器，禁止 nth-child 位置定位
+   · 每条规则只出现一次，消除重复
+   · 渲染基元（prop-image-layer 等）不全局隐藏，仅精准上下文拦截
+   · 通配符 [class*=] 仅在语义足够明确时使用
+   ========================================================================== */
+
+
 /* --- 全局广告容器 --- */
 #kook-ads-container,
 #kook-ads-container *,
@@ -1045,6 +1055,12 @@ s.textContent = `
   display: none !important;
 }
 
+
+/* ==========================================================================
+   弹窗遮罩层
+   ========================================================================== */
+
+/* 保留：用户资料卡、确认弹窗、频道邀请 */
 .chuanyu-modal-container:has(.dialog-user-profile),
 .chuanyu-modal-container:has(.user-profile-group),
 .chuanyu-modal-container:has(.dialog-confirm),
@@ -1056,7 +1072,7 @@ s.textContent = `
   display: flex !important;
 }
 
-/* --- 隐藏广告/变现/推广/活动弹窗遮罩及内容 --- */
+/* 隐藏：商业推广弹窗遮罩 */
 .chuanyu-modal-container:has(.promotion-dialog),
 .chuanyu-modal-container:has(.kpm-vip-modal),
 .chuanyu-modal-container:has(.vip-buy-modal),
@@ -1072,20 +1088,25 @@ s.textContent = `
 .chuanyu-modal-container:has(.satisfaction-survey-modal),
 .chuanyu-modal-container:has(.guide-modal),
 .chuanyu-modal-container:has(.download-app-modal),
-.chuanyu-modal-container:has(.first-newversion),
-.chuanyu-modal-container:has(.firstlaunch-newversion),
 .chuanyu-modal-container:has([class*="newversion"]),
 .khj-modal-container:has(.promotion-dialog),
 .khj-modal-container:has(.kpm-vip-modal),
 .khj-modal-container:has(.dialog-payment),
 .khj-modal-container:has(.goods-modal),
 .khj-modal-container:has(.activity-dialog),
-.khj-modal-container:has(.first-newversion),
-.khj-modal-container:has(.firstlaunch-newversion),
-.khj-modal-container:has([class*="newversion"]),
+.khj-modal-container:has([class*="newversion"]) {
+  display: none !important;
+}
+
+
+/* ==========================================================================
+   弹窗内容节点
+   ========================================================================== */
+
+/* 推广/引导/活动弹窗 */
+.promotion-dialog,
 .guide-banner-container,
 .download-modal,
-.promotion-dialog,
 .kpm-vip-modal,
 .vip-buy-modal,
 .vip-privilege-modal,
@@ -1112,12 +1133,14 @@ s.textContent = `
 .download-client-modal,
 .update-notice-modal,
 .kook-update-modal,
-.first-newversion,
-.firstlaunch-newversion,
 .new-version-fix-dialog,
 .update-view,
 [class*="update-modal"],
-[class*="newversion"],
+[class*="newversion"] {
+  display: none !important;
+}
+
+/* 语音质量评价弹窗 */
 .voice-quality-eval-modal,
 .voice-quality-evaluation,
 .voice-eval-dialog,
@@ -1134,25 +1157,39 @@ s.textContent = `
   display: none !important;
 }
 
-/* --- 顶部标题栏广告 + 商城入口 + 下载客户端 --- */
-#root>div.win-wapper>div.win-title-bar>div.win-title-inner>div.left>div.khj-entry-tag,
-#root>div.win-wapper>div.win-title-bar>div.win-title-inner>div.left>div.kook-anchor-titlebar-left,
+
+/* ==========================================================================
+   顶部标题栏
+   ========================================================================== */
+
 .kook-anchor-titlebar-left,
 .client-download-tag,
 .desktop-client-download-tip,
-#root>div.win-wapper>div.desktop-client-download-tip,
-.title-icon-wrapper {
+.title-icon-wrapper,
+.shop-icon-tooltip-big,
+.shop-icon-tooltip-big-content,
+.shop-icon-tooltip-small,
+.shop-icon-tooltip-small-content,
+.shop-close-icon,
+.win-download-icon {
   display: none !important;
 }
 
-/* --- 消息区顶部提醒/广告条 --- */
+/* 确保顶栏右侧图标组不受左侧隐藏内容影响 */
+.win-title-inner > .right {
+  margin-left: auto !important;
+}
+
+
+/* ==========================================================================
+   消息区 / Banner 广告
+   ========================================================================== */
+
 .kook-message-header-alert,
-.kook-message-header-alert>div,
 div[class*="message-header-alert"] {
   display: none !important;
 }
 
-/* --- Banner 横幅广告 --- */
 .banner-box,
 .guild-banner-box,
 .guild-channel-banner-placeholder-box,
@@ -1171,16 +1208,18 @@ div[class*="guild-banner-box"],
 .discover-goods-ad-img,
 .discover-goods-ad-img-close,
 .discover-goods-ad-img-content,
-.guide-banner-container,
 .robot-home-dialog-banner,
 .recording-ctrl-panel-banner {
   display: none !important;
 }
 
-/* --- 推广/任务系统 --- */
+
+/* ==========================================================================
+   推广/任务系统
+   ========================================================================== */
+
 .promotion-banner,
 .promotion-banner-section,
-.promotion-dialog,
 .promotion-header,
 .promotion-info,
 .promotion-task-item,
@@ -1199,26 +1238,15 @@ div[class*="guild-banner-box"],
 div[class*="promotion-banner"],
 div[class*="advertisement"],
 div[class*="promotion-task"],
-div[class*="-task-item"],
-div[class*="-task-entry"],
-div[class*="-task-icon"],
-div[class*="-task-dialog"],
 div[class*="daily-task"],
 div[class*="growth-task"],
 div[class*="activity-task"],
 div[class*="task-center"],
 div[class*="daily-check-in"],
-div[class*="daily-bonus"],
 div[class*="daily-sign-in"],
 div[class*="redpacket"],
 div[class*="red-packet"],
-div[class*="activity-center"],
 div[class*="newbie-guide"],
-div[class*="onboarding"],
-div[class*="-reward-"],
-div[class*="-bonus-"],
-div[class*="mission-"],
-div[class*="quest-"],
 .khj-drop-toast-layer,
 .khj-drop-toast,
 div[class*="drop-toast"],
@@ -1226,11 +1254,22 @@ div[class*="khj-drop-toast"] {
   display: none !important;
 }
 
+li:has(> .promotion-task-item),
+li:has(> div[class*="promotion-task"]),
+li:has(> div[class*="daily-task"]) {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
 
-/* --- 道具/商品/商城 --- */
+
+/* ==========================================================================
+   道具/商品/商城
+   ========================================================================== */
+
 .goods-tag,
 .kprop-new-tag,
-.goods-modal,
 .goto-kpropshop,
 .setting-page-shop-panel,
 .setting-page-to-shop,
@@ -1245,7 +1284,6 @@ div[class*="khj-drop-toast"] {
 .button-decorations-kprop,
 .button-decorations-kprop-add,
 .button-kprop,
-.dialog-payment-goods,
 .goods-list,
 .goods-description,
 .goods-formula-panel,
@@ -1262,11 +1300,30 @@ div[class*="khj-drop-toast"] {
 .vip-guide-price,
 .vip-price,
 .boost_pricepercontstr,
-.kook-tootip.kook-tootip-text-align-left.kook-tootip-text-wrap-break.shop-icon-tooltip-big:has(>.shop-icon-tooltip-big-content) {
+.kook-tootip.kook-tootip-text-align-left.kook-tootip-text-wrap-break.shop-icon-tooltip-big:has(> .shop-icon-tooltip-big-content) {
   display: none !important;
 }
 
-/* --- 代币/余额系统 --- */
+/* kprop-goods 商城卡片：仅在推广区拦截，背包/弹窗区天然可见 */
+.discover-goods-ad .kprop-goods,
+#kook-ads-container .kprop-goods,
+.goods-list .kprop-goods {
+  display: none !important;
+}
+
+/* 道具使用快捷面板（聊天输入栏弹出） */
+.action-prop-list,
+.action-prop-item,
+.action-props-box,
+.goods-prop {
+  display: none !important;
+}
+
+
+/* ==========================================================================
+   代币/余额系统
+   ========================================================================== */
+
 .balance-icon,
 .balance-text,
 .coin-balance,
@@ -1307,8 +1364,11 @@ div[class*="khj-drop-toast"] {
   display: none !important;
 }
 
-/* --- 支付/充值弹窗 --- */
-.dialog-payment,
+
+/* ==========================================================================
+   支付/充值弹窗
+   ========================================================================== */
+
 .dialog-payment-mode,
 .dialog-payment-target,
 .dialog-payment-title,
@@ -1362,7 +1422,11 @@ div[class*="khj-drop-toast"] {
   display: none !important;
 }
 
-/* --- 礼物系统 --- */
+
+/* ==========================================================================
+   礼物系统
+   ========================================================================== */
+
 .gift-entry,
 .gift-message,
 .gift-message-icon,
@@ -1379,7 +1443,6 @@ div[class*="khj-drop-toast"] {
 .gift-canvas,
 .gift-entry-button,
 .giftButtonClick,
-.dialog-friend-gift-vip,
 .user-info-card-gift-icon,
 .user-info-card-gift-wrapper,
 .meme-container-old,
@@ -1391,7 +1454,11 @@ div[class*="meme-item"] {
   display: none !important;
 }
 
-/* --- 服务器助推 (Boost) --- */
+
+/* ==========================================================================
+   服务器助推 (Boost)
+   ========================================================================== */
+
 .guild-boost-level,
 .guild-boost-level-detail,
 .guild-boost-level-item,
@@ -1401,11 +1468,21 @@ div[class*="meme-item"] {
 .boost-level-rights,
 .boost-level-tip,
 .boost-badge,
-.booster-logo {
+.booster-logo,
+.guild-boost-item,
+.guild-boost-level-list,
+.guild-guide-role-wrapper,
+.dialog-guild-boost-contain,
+.guild-boost-use-buy,
+.GuildBoostDialog {
   display: none !important;
 }
 
-/* --- VIP/高级会员 --- */
+
+/* ==========================================================================
+   VIP / 高级会员
+   ========================================================================== */
+
 div.vip-tag,
 .vip-decoration,
 .nitro-badge,
@@ -1415,14 +1492,19 @@ div.vip-tag,
 .kpm-vip-modal,
 .kpm-vip-top-parent,
 .kmp_vip_tips,
+.kmp_vip_tips_link,
 .kmp_vip_tips_parent,
 .vip-price-tips,
-.invite-vip-gradient-bg {
+.invite-vip-gradient-bg,
+.upload-preview-buy-vip {
   display: none !important;
 }
 
 
-/* --- 头像框、铭牌挂件、勋章与资料卡装饰品 --- */
+/* ==========================================================================
+   头像框、铭牌挂件、勋章与资料卡装饰品
+   ========================================================================== */
+
 .kook-avatar-frame-static,
 .kook-avatar-frame-animate,
 .kook-avatar-frame,
@@ -1448,25 +1530,21 @@ div[class*="nameplate"],
 div[class*="namepalte"],
 img[src*="nameplate"],
 img[src*="s_nameplate"],
-.user-name-info>img:not(.emoji),
+.user-name-info > img:not(.emoji),
 .badge-list,
 .badge-item,
 .badge-more,
-.nitro-badge,
 .guild-voice-badge,
 .icon-badge,
 .invite-client-badge,
 .invite-client-btn-badges,
-.boost-badge,
 div[class*="badge-list"],
 div[class*="badge-item"],
-.vip-decoration,
 .vip-amp,
 .vip-amp-animation,
 .vip-icon,
 .all_vip,
 .show-other-vip,
-.upload-preview-buy-vip,
 .goods-vip,
 .prizes-decorate,
 .kook-prizes-decorate,
@@ -1484,106 +1562,17 @@ div[class*="badge-item"],
 .booster-tag,
 .guild-boost-tag,
 .icon-user_tag,
-.kprop-goods,
 .kprop-scope,
-.kprop-new-tag,
-.button-decorations-kprop,
-.button-decorations-kprop-add,
-.action-prop-list,
-.action-prop-item,
-.action-props-box,
-.goods-prop,
-.prop-image-layer,
-.prop-icon,
-.prop-item,
-.prop-item-img-bg,
 .intimacy-img,
 .intimacy-tag {
   display: none !important;
 }
 
-/* --- 设置页与我的背包：恢复用户资产与道具卡片预览正常展示 --- */
-.setting-page .prop-image-layer,
-.setting-page .prop-icon,
-.setting-page .prop-item,
-.setting-page .prop-item-img-bg,
-.setting-page .action-prop-list,
-.setting-page .action-prop-item,
-.setting-page .action-props-box,
-.setting-page .goods-prop,
-.setting-page .action-prop-img,
-.setting-page .image-bg-layer,
-.setting-page .image-contont-layer,
-.setting-page img.kook-avatar-frame-static,
-.setting-page img.kook-avatar-frame-animate,
-.setting-page .kook-avatar-frame-static,
-.setting-page .kook-avatar-frame-animate,
-.setting-page .kook-avatar-frame,
-.setting-page [class*="avatar-frame"],
-.setting-page [class*="kook-avatar-frame"],
-.setting-page .namepalte-item,
-.setting-page .namepalte-item-animate,
-.setting-page .namepalte-item-static,
-.setting-page .nameplate,
-.setting-page .s_nameplate,
-.setting-page div[class*="nameplate"],
-.setting-page div[class*="namepalte"],
-.setting-page img[src*="nameplate"],
-.setting-page img[src*="s_nameplate"],
-.setting-page .badge-list,
-.setting-page .badge-item,
-.setting-page div[class*="badge-list"],
-.setting-page div[class*="badge-item"],
-.setting-page .meme-item-container,
-.setting-page .meme-item,
-.setting-page div[class*="meme-item"],
-.setting-page .prizes-decorate,
-.setting-page .kook-prizes-decorate,
-.setting-page .prize-item,
-.setting-page [class*="prizes-decorate"],
-.setting-page-mask .prop-image-layer,
-.setting-page-mask .prop-icon,
-.setting-page-mask .prop-item,
-.setting-page-mask .prop-item-img-bg,
-.setting-page-mask .action-prop-list,
-.setting-page-mask .action-prop-item,
-.setting-page-mask .action-props-box,
-.setting-page-mask .goods-prop,
-.setting-page-mask .action-prop-img,
-.setting-page-mask .image-bg-layer,
-.setting-page-mask .image-contont-layer,
-.setting-page-mask img.kook-avatar-frame-static,
-.setting-page-mask img.kook-avatar-frame-animate,
-.setting-page-mask .kook-avatar-frame-static,
-.setting-page-mask .kook-avatar-frame-animate,
-.setting-page-mask .kook-avatar-frame,
-.setting-page-mask [class*="avatar-frame"],
-.setting-page-mask [class*="kook-avatar-frame"],
-.setting-page-mask .namepalte-item,
-.setting-page-mask .namepalte-item-animate,
-.setting-page-mask .namepalte-item-static,
-.setting-page-mask .nameplate,
-.setting-page-mask .s_nameplate,
-.setting-page-mask div[class*="nameplate"],
-.setting-page-mask div[class*="namepalte"],
-.setting-page-mask img[src*="nameplate"],
-.setting-page-mask img[src*="s_nameplate"],
-.setting-page-mask .badge-list,
-.setting-page-mask .badge-item,
-.setting-page-mask div[class*="badge-list"],
-.setting-page-mask div[class*="badge-item"],
-.setting-page-mask .meme-item-container,
-.setting-page-mask .meme-item,
-.setting-page-mask div[class*="meme-item"],
-.setting-page-mask .prizes-decorate,
-.setting-page-mask .kook-prizes-decorate,
-.setting-page-mask .prize-item,
-.setting-page-mask [class*="prizes-decorate"] {
-  display: revert !important;
-}
 
+/* ==========================================================================
+   用户资料卡横幅
+   ========================================================================== */
 
-/* --- 用户资料卡横幅：保留基础布局避免头像与卡片塌陷，净化装扮大图与动态背景 --- */
 .user-banner.has-banner {
   height: 74px !important;
   background-image: none !important;
@@ -1594,7 +1583,11 @@ div[class*="badge-item"],
   display: none !important;
 }
 
-/* --- 亲密关系 (Intimacy) 浮动背景特效移除 --- */
+
+/* ==========================================================================
+   亲密关系浮动背景特效
+   ========================================================================== */
+
 .user-info-right.intimacy,
 .user-info-right.intimacy_kpm,
 .user-info-right.intimacy-animation,
@@ -1605,35 +1598,30 @@ div[class*="badge-item"],
   background: transparent !important;
 }
 
-/* --- 设置页推广入口 --- */
-#root>div.win-wapper>div.app-main-wrapper>div:nth-child(3)>div>div.setting-page-nav>div>div>div:nth-child(1)>div:nth-child(3),
-#root>div.win-wapper>div.app-main-wrapper>div:nth-child(3)>div>div.setting-page-nav>div>div>div:nth-child(1)>div:nth-child(6),
+
+/* ==========================================================================
+   设置页 / 用户菜单
+   ========================================================================== */
+
 .setting-cdk,
 .setting-cdkey-input,
 .user-setting-mf-goods-tag,
 .user-setting-mf-mask-nav-group-item:has(.user-setting-mf-goods-tag),
+.user-setting-mf-mask-nav-group-item:has(.user-setting-mf-shop-icon),
 .user-setting-mf-unread {
   display: none !important;
 }
 
-/* --- 设置页推广分割线（保留1,2,4号） --- */
-.entry-list>.entry-line {
+/* 用户菜单推广入口（语义匹配，无 nth-child 位置依赖） */
+.user-setting-menu-item:has(.menu-inner-button),
+.user-setting-menu-item:has([class*="ShopSvgIcon"]),
+.user-setting-menu-item:has(svg.shop-svg-icon),
+.user-setting-menu-item:has(path[d^="M16.25,10.65"]),
+.user-setting-menu-item:has(.tag) {
   display: none !important;
 }
 
-.entry-list>.entry-line:nth-child(1),
-.entry-list>.entry-line:nth-child(2),
-.entry-list>.entry-line:nth-child(4) {
-  display: block !important;
-}
-
-/* --- 用户菜单推广 + 红点 --- */
-.user-setting-menu-list>.user-setting-menu-item:nth-child(1),
-.user-setting-menu-list>.user-setting-menu-item:has(.tag),
-.user-setting-menu-list>div:nth-child(1) {
-  display: none !important;
-}
-
+/* 用户菜单红点/未读角标 */
 .user-setting-menu-list .red-dot,
 .user-setting-menu-list .badge,
 .user-setting-menu-list [class*="dot"],
@@ -1646,17 +1634,11 @@ div[class*="badge-item"],
   display: none !important;
 }
 
-/* --- 戳一戳消息 --- */
-.text-message-item:has(.poke-msg-icon) {
-  display: none !important;
-}
 
-/* --- 其他推广 --- */
-#icon-app-download,
-div.voice-icon.screen,
-div.text-channel-unread-icon,
-div.guild-unread-icon,
-div.connect-info,
+/* ==========================================================================
+   其他推广元素
+   ========================================================================== */
+
 div.sidebar-server-list-bottom-ad,
 div.guild-list-bottom-banner,
 div.activity-feed-ad,
@@ -1664,11 +1646,69 @@ div.activity-banner-ad,
 div.activity-disabled-banner,
 div.voice-channel-promotion,
 div.friend-list-ad-banner,
-.tip-entry-button {
+.tip-entry-button,
+#icon-app-download,
+div.voice-icon.screen,
+div.text-channel-unread-icon,
+div.guild-unread-icon,
+div.connect-info {
   display: none !important;
 }
 
-/* --- 隐藏左下角个人设置红点 --- */
+.text-message-item:has(.poke-msg-icon) {
+  display: none !important;
+}
+
+.activity-list-header,
+.custom-activity-header-action,
+.custom-activity-header-add-btn {
+  display: none !important;
+}
+
+body > div.buff-hq-tooltip {
+  display: none !important;
+}
+
+.console-tools-container {
+  display: none !important;
+}
+
+.xunyou-bg-image-layer,
+.xunyou-bg-mask-layer,
+.xunyou-content-layer,
+.accelerator-logo {
+  display: none !important;
+}
+
+.shunwang-login-risk-tip__download,
+.shunwang-mobile-app-top-bar__download,
+.netbar-scan-login-dialog__download,
+.mobile-app-download-guide-qr,
+.chose-install-dialog,
+.chose-install-head,
+.chose-install-body {
+  display: none !important;
+}
+
+.kk-daily-root,
+.kk-daily,
+.kk-daily-password-card,
+.kk-daily-ammo-card,
+.kk-daily-data-row {
+  display: none !important;
+}
+
+.float-popup-wrapper:has([class*="promotion"]),
+.float-popup-wrapper:has([class*="MallTips"]),
+.MallTipsPopUp {
+  display: none !important;
+}
+
+
+/* ==========================================================================
+   左下角个人区域红点防护
+   ========================================================================== */
+
 .app-self-info-unread,
 .app-self-info .red-dot,
 .app-self-info .badge:not(canvas):not([class*="canvas"]):not([class*="mask"]),
@@ -1682,137 +1722,17 @@ div.friend-list-ad-banner,
   display: none !important;
 }
 
-/* 保护左下角个人头像 Canvas 不被角标/广告规则误伤 */
+/* 保护头像 Canvas 不被角标规则误伤 */
 .app-self-info .app-self-info-badge-mask__canvas,
 .app-self-info canvas {
   display: block !important;
 }
 
-/* --- 隐藏增值服务相关模块 --- */
-.guild-boost-item,
-.guild-boost-level-list,
-.boost-level-rights,
-.guild-guide-role-wrapper,
-.activity-list-header,
-.custom-activity-header-action,
-.custom-activity-header-add-btn {
-  display: none !important;
-}
-
-/* --- HQ音质引导BUFF充值广告 --- */
-body>div.buff-hq-tooltip {
-  display: none !important;
-}
-
-/* --- 隐藏顶栏更新提醒按钮 --- */
-.win-download-icon,
-.win-title-bar-icon.win-download-icon {
-  display: none !important;
-}
-
-/* --- 隐藏语音频道工具箱 --- */
-.console-tools-container {
-  display: none !important;
-}
 
 /* ==========================================================================
-   顶栏布局加固与精准广告占位消除
+   错误提示页对比度加固
    ========================================================================== */
 
-/* 确保顶栏右侧图标组永远坚固靠右对齐，不受左侧内容影响 */
-.win-title-inner > .right {
-  margin-left: auto !important;
-}
-
-/* 侧边栏任务、推广包裹条目折叠 */
-li:has(> .promotion-task-item),
-li:has(> div[class*="promotion-task"]),
-li:has(> div[class*="daily-task"]) {
-  display: none !important;
-  height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* --- 用户菜单推广入口（KOOK加速器、道具商城） --- */
-.user-setting-menu-item:has(.menu-inner-button),
-.user-setting-menu-item:has([class*="ShopSvgIcon"]),
-.user-setting-menu-item:has(svg.shop-svg-icon),
-.user-setting-menu-item:has(path[d^="M16.25,10.65"]),
-.user-setting-menu-item:has(.tag) {
-  display: none !important;
-}
-
-/* --- 用户设置微前端页面商城入口 --- */
-.user-setting-mf-mask-nav-group-item:has(.user-setting-mf-shop-icon) {
-  display: none !important;
-}
-
-/* --- 迅游加速器联运层 --- */
-.xunyou-bg-image-layer,
-.xunyou-bg-mask-layer,
-.xunyou-content-layer,
-.accelerator-logo {
-  display: none !important;
-}
-
-/* --- 顶栏道具商城悬浮气泡容器 --- */
-.shop-icon-tooltip-big,
-.shop-icon-tooltip-big-content,
-.shop-icon-tooltip-small,
-.shop-icon-tooltip-small-content,
-.shop-close-icon {
-  display: none !important;
-}
-
-/* --- 游戏日报与带货抽奖卡片 --- */
-.kk-daily-root,
-.kk-daily,
-.kk-daily-password-card,
-.kk-daily-ammo-card,
-.kk-daily-data-row {
-  display: none !important;
-}
-
-/* --- VIP 转化诱导与特权推广提示 --- */
-.upload-preview-buy-vip,
-.setting-buy-vip,
-.setting-buy-vip-expire,
-.kmp_vip_tips,
-.kmp_vip_tips_link,
-.kmp_vip_tips_parent,
-.kpm-vip-top-parent {
-  display: none !important;
-}
-
-/* --- 服务器助力购买弹窗与引导 --- */
-.dialog-guild-boost-contain,
-.guild-boost-use-buy,
-.GuildBoostDialog {
-  display: none !important;
-}
-
-/* --- 合作渠道引流与外链下载推广 --- */
-.shunwang-login-risk-tip__download,
-.shunwang-mobile-app-top-bar__download,
-.netbar-scan-login-dialog__download,
-.mobile-app-download-guide-qr,
-.chose-install-dialog,
-.chose-install-head,
-.chose-install-body {
-  display: none !important;
-}
-
-/* --- 广告与商业推广动态悬浮气泡/弹层 --- */
-.float-popup-wrapper:has([class*="promotion"]),
-.float-popup-wrapper:has([class*="ad"]),
-.float-popup-wrapper:has([class*="MallTips"]),
-.MallTipsPopUp {
-  display: none !important;
-}
-
-
-/* --- 错误提示页对比度加固（避免无暗色主题类名时白底白字失明） --- */
 .kaihei-error-page {
   background-color: #1e2025 !important;
   color: #dcddde !important;
