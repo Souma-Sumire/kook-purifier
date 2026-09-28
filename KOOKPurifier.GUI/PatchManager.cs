@@ -417,6 +417,27 @@ namespace KOOKPurifier.GUI
 
             string devToolsSnippet = @"
 try {
+  // 1. 阻断 @sentry/electron 模块加载与异常上报
+  try {
+    const _Module = require('module');
+    const _origReq = _Module.prototype.require;
+    _Module.prototype.require = function (id) {
+      if (typeof id === 'string' && (id === '@sentry/electron' || id.indexOf('@sentry/') !== -1)) {
+        return {
+          init: () => {},
+          captureException: () => {},
+          captureMessage: () => {},
+          addBreadcrumb: () => {},
+          configureScope: () => {},
+          setTag: () => {},
+          setExtra: () => {},
+          setUser: () => {}
+        };
+      }
+      return _origReq.apply(this, arguments);
+    };
+  } catch (_) {}
+
   const { app: _app, BrowserWindow: _BrowserWindow, ipcMain: _ipcMain, autoUpdater: _autoUpdater } = require('electron');
   
   if (_autoUpdater) {
@@ -426,38 +447,70 @@ try {
 
   let _devToolsEnabled = true;
 
-  if (_ipcMain) {
-    try {
-      _ipcMain.on('set-devtools-enabled', (event, val) => {
-        _devToolsEnabled = !!val;
-      });
-      _ipcMain.on('toggle-devtools', (event) => {
+  // 2. 底层协议栈拦截 (广告/追踪/埋点/第三方统计)
+  const _blockedPatterns = [
+    '*://hm.baidu.com/*',
+    '*://*.mediav.com/*',
+    '*://*experience.kookapp.com.cn/*',
+    '*://*errorlog.kookapp.com.cn/*',
+    '*://*log.kookapp.cn/*',
+    '*://*sentry.kookapp.cn/*',
+    '*://*ssp_ad_sdk*'
+  ];
+
+  const _attachNetFilter = (sess) => {
+    if (sess && sess.webRequest) {
+      try {
+        sess.webRequest.onBeforeRequest({ urls: _blockedPatterns }, (details, callback) => {
+          callback({ cancel: true });
+        });
+      } catch (_) {}
+    }
+  };
+
+  if (_app) {
+    _app.whenReady().then(() => {
+      try {
+        const { session } = require('electron');
+        if (session && session.defaultSession) _attachNetFilter(session.defaultSession);
+      } catch (_) {}
+    });
+
+    _app.on('browser-window-created', (event, win) => {
+      if (win && win.webContents && win.webContents.session) {
+        _attachNetFilter(win.webContents.session);
+      }
+      win.webContents.on('before-input-event', (e, input) => {
         if (!_devToolsEnabled) return;
-        const win = _BrowserWindow.fromWebContents(event.sender);
-        if (win) win.webContents.toggleDevTools();
+        if (input.type === 'keyDown') {
+          const isF12 = input.key === 'F12';
+          const isCtrlShiftI = (input.control || input.meta) && input.shift && (input.key === 'I' || input.key === 'i');
+          if (isF12 || isCtrlShiftI) {
+            win.webContents.toggleDevTools();
+          }
+        }
       });
-    } catch (_) {}
-    
-    try { _ipcMain.handle('check-update-get-config', () => null); } catch (_) {}
-    try { _ipcMain.on('check-update-is-updating', (e) => { e.returnValue = false; }); } catch (_) {}
-    try { _ipcMain.on('autoUpdateInit', () => {}); } catch (_) {}
-    try { _ipcMain.on('autoUpdateChecking', () => {}); } catch (_) {}
-    try { _ipcMain.on('autoUpdateDownloading', () => {}); } catch (_) {}
-    try { _ipcMain.on('autoUpdateCompleted', () => {}); } catch (_) {}
+    });
   }
 
-  _app.on('browser-window-created', (event, win) => {
-    win.webContents.on('before-input-event', (e, input) => {
-      if (!_devToolsEnabled) return;
-      if (input.type === 'keyDown') {
-        const isF12 = input.key === 'F12';
-        const isCtrlShiftI = (input.control || input.meta) && input.shift && (input.key === 'I' || input.key === 'i');
-        if (isF12 || isCtrlShiftI) {
-          win.webContents.toggleDevTools();
-        }
-      }
+  if (_ipcMain) {
+    _ipcMain.on('set-devtools-enabled', (event, val) => {
+      _devToolsEnabled = !!val;
     });
-  });
+    _ipcMain.on('toggle-devtools', (event) => {
+      if (!_devToolsEnabled) return;
+      const win = _BrowserWindow.fromWebContents(event.sender);
+      if (win) win.webContents.toggleDevTools();
+    });
+    
+    // Disable KOOK AutoUpdate & HotUpdate IPC handlers
+    _ipcMain.handle('check-update-get-config', () => null);
+    _ipcMain.on('check-update-is-updating', (e) => { e.returnValue = false; });
+    _ipcMain.on('autoUpdateInit', () => {});
+    _ipcMain.on('autoUpdateChecking', () => {});
+    _ipcMain.on('autoUpdateDownloading', () => {});
+    _ipcMain.on('autoUpdateCompleted', () => {});
+  }
 } catch (_err) {}
 ";
             mainContent = devToolsSnippet + "\n" + mainContent;
