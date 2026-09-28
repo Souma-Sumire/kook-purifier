@@ -701,7 +701,13 @@ li:has(> div[class*="daily-task"]) {
 .user-setting-menu-item:has(.menu-inner-button),
 .user-setting-menu-item:has([class*="ShopSvgIcon"]),
 .user-setting-menu-item:has(svg.shop-svg-icon),
+.user-setting-menu-item:has(path[d^="M16.25,10.65"]),
 .user-setting-menu-item:has(.tag) {
+  display: none !important;
+}
+
+/* --- 用户设置微前端页面商城入口 --- */
+.user-setting-mf-mask-nav-group-item:has(.user-setting-mf-shop-icon) {
   display: none !important;
 }
 

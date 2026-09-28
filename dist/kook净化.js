@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.2.13
+// @version      1.2.15
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -320,21 +320,54 @@ var CONFIG_KEY = 'kook_purifier_config';
   var pendingDomNodes = [];
   var domCleanScheduled = false;
 
+
+  // 深度隐藏用户菜单与设置中心微前端中的 KOOK 商城入口（仅精确针对叶子条目，绝不触碰父级容器）
+  function cleanShopItems(el) {
+    if (!currentConfig.blockAds || !el || el.nodeType !== 1) return;
+
+    // 1. 头像弹出的个人设置菜单项
+    var menuItems = el.querySelectorAll ? el.querySelectorAll('.user-setting-menu-item') : [];
+    if (el.classList && el.classList.contains('user-setting-menu-item')) {
+      menuItems = [el];
+    }
+    for (var i = 0; i < menuItems.length; i++) {
+      var item = menuItems[i];
+      var text = (item.textContent || '').trim();
+      if (text.indexOf('商城') !== -1 || item.querySelector('path[d^="M16.25,10.65"]')) {
+        item.style.setProperty('display', 'none', 'important');
+      }
+    }
+
+    // 2. 设置中心微前端侧边导航栏单项条目 (.user-setting-mf-mask-nav-group-item)
+    var navItems = el.querySelectorAll ? el.querySelectorAll('.user-setting-mf-mask-nav-group-item') : [];
+    if (el.classList && el.classList.contains('user-setting-mf-mask-nav-group-item')) {
+      navItems = [el];
+    }
+    for (var j = 0; j < navItems.length; j++) {
+      var navItem = navItems[j];
+      var navText = (navItem.textContent || '').trim();
+      if (navText.indexOf('商城') !== -1 || navItem.querySelector('.user-setting-mf-shop-icon')) {
+        navItem.style.setProperty('display', 'none', 'important');
+      }
+    }
+  }
+
   function processPendingDomClean() {
     domCleanScheduled = false;
-    if (!currentConfig.purifyVip || pendingDomNodes.length === 0) {
+    if ((!currentConfig.purifyVip && !currentConfig.blockAds) || pendingDomNodes.length === 0) {
       pendingDomNodes = [];
       return;
     }
     var batch = pendingDomNodes;
     pendingDomNodes = [];
     for (var i = 0; i < batch.length; i++) {
-      cleanVipDom(batch[i]);
+      if (currentConfig.purifyVip) cleanVipDom(batch[i]);
+      if (currentConfig.blockAds) cleanShopItems(batch[i]);
     }
   }
 
   function scheduleDomClean(node) {
-    if (!currentConfig.purifyVip || !node || node.nodeType !== 1) return;
+    if ((!currentConfig.purifyVip && !currentConfig.blockAds) || !node || node.nodeType !== 1) return;
     pendingDomNodes.push(node);
     if (!domCleanScheduled) {
       domCleanScheduled = true;
@@ -347,7 +380,7 @@ var CONFIG_KEY = 'kook_purifier_config';
   }
 
   var observer = new MutationObserver(function (mutations) {
-    if (!currentConfig.purifyVip) return;
+    if (!currentConfig.purifyVip && !currentConfig.blockAds) return;
     for (var i = 0; i < mutations.length; i++) {
       var added = mutations[i].addedNodes;
       for (var j = 0; j < added.length; j++) {
@@ -358,11 +391,13 @@ var CONFIG_KEY = 'kook_purifier_config';
 
   if (document.body) {
     observer.observe(document.body, { childList: true, subtree: true });
-    cleanVipDom(document.body);
+    if (currentConfig.purifyVip) cleanVipDom(document.body);
+    if (currentConfig.blockAds) cleanShopItems(document.body);
   } else {
     document.addEventListener('DOMContentLoaded', function () {
       observer.observe(document.body, { childList: true, subtree: true });
-      cleanVipDom(document.body);
+      if (currentConfig.purifyVip) cleanVipDom(document.body);
+      if (currentConfig.blockAds) cleanShopItems(document.body);
     });
   }
 
@@ -1703,7 +1738,13 @@ li:has(> div[class*="daily-task"]) {
 .user-setting-menu-item:has(.menu-inner-button),
 .user-setting-menu-item:has([class*="ShopSvgIcon"]),
 .user-setting-menu-item:has(svg.shop-svg-icon),
+.user-setting-menu-item:has(path[d^="M16.25,10.65"]),
 .user-setting-menu-item:has(.tag) {
+  display: none !important;
+}
+
+/* --- 用户设置微前端页面商城入口 --- */
+.user-setting-mf-mask-nav-group-item:has(.user-setting-mf-shop-icon) {
   display: none !important;
 }
 
