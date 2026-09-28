@@ -132,6 +132,8 @@ div[class*="guild-banner-box"],
 .discover-goods-ad,
 .discover-goods-ad-border,
 .discover-goods-ad-img,
+.discover-goods-ad-img-close,
+.discover-goods-ad-img-content,
 .guide-banner-container,
 .robot-home-dialog-banner,
 .recording-ctrl-panel-banner {
@@ -728,6 +730,44 @@ li:has(> div[class*="daily-task"]) {
 .kk-daily-data-row {
   display: none !important;
 }
+
+/* --- VIP 转化诱导与特权推广提示 --- */
+.upload-preview-buy-vip,
+.setting-buy-vip,
+.setting-buy-vip-expire,
+.kmp_vip_tips,
+.kmp_vip_tips_link,
+.kmp_vip_tips_parent,
+.kpm-vip-top-parent {
+  display: none !important;
+}
+
+/* --- 服务器助力购买弹窗与引导 --- */
+.dialog-guild-boost-contain,
+.guild-boost-use-buy,
+.GuildBoostDialog {
+  display: none !important;
+}
+
+/* --- 合作渠道引流与外链下载推广 --- */
+.shunwang-login-risk-tip__download,
+.shunwang-mobile-app-top-bar__download,
+.netbar-scan-login-dialog__download,
+.mobile-app-download-guide-qr,
+.chose-install-dialog,
+.chose-install-head,
+.chose-install-body {
+  display: none !important;
+}
+
+/* --- 广告与商业推广动态悬浮气泡/弹层 --- */
+.float-popup-wrapper:has([class*="promotion"]),
+.float-popup-wrapper:has([class*="ad"]),
+.float-popup-wrapper:has([class*="MallTips"]),
+.MallTipsPopUp {
+  display: none !important;
+}
+
 
 /* --- 错误提示页对比度加固（避免无暗色主题类名时白底白字失明） --- */
 .kaihei-error-page {

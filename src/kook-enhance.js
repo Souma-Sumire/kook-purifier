@@ -151,11 +151,9 @@
            u.indexOf('ssp_ad_sdk') !== -1 ||
            u.indexOf('mediav.com') !== -1 ||
            u.indexOf('xubei-products') !== -1 ||
-           u.indexOf('promotion/first-record-popup-view') !== -1 ||
-           u.indexOf('promotion/manual-complete-task') !== -1 ||
-           u.indexOf('promotion/ongoing') !== -1 ||
-           u.indexOf('promotion/task') !== -1 ||
-           u.indexOf('promotion/accept-task') !== -1;
+           u.indexOf('order/blind-box-log-by-code') !== -1 ||
+           u.indexOf('acc.kookapp.cn') !== -1 ||
+           u.indexOf('promotion/') !== -1;
   }
 
   // 判定是否为数据统计、埋点上报、Sentry 监控或营销归因请求
@@ -167,7 +165,8 @@
            u.indexOf('log.kookapp.cn') !== -1 ||
            u.indexOf('sentry') !== -1 ||
            u.indexOf('user/utm') !== -1 ||
-           u.indexOf('report-activity') !== -1;
+           u.indexOf('report-activity') !== -1 ||
+           u.indexOf('qos/experience') !== -1;
   }
 
   // Hook Fetch 接口
