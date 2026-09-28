@@ -474,6 +474,7 @@ div[class*="badge-item"],
 .setting-page .action-prop-item,
 .setting-page .action-props-box,
 .setting-page .goods-prop,
+.setting-page .kprop-goods,
 .setting-page .action-prop-img,
 .setting-page .image-bg-layer,
 .setting-page .image-contont-layer,
@@ -512,6 +513,7 @@ div[class*="badge-item"],
 .setting-page-mask .action-prop-item,
 .setting-page-mask .action-props-box,
 .setting-page-mask .goods-prop,
+.setting-page-mask .kprop-goods,
 .setting-page-mask .action-prop-img,
 .setting-page-mask .image-bg-layer,
 .setting-page-mask .image-contont-layer,
@@ -542,6 +544,35 @@ div[class*="badge-item"],
 .setting-page-mask .kook-prizes-decorate,
 .setting-page-mask .prize-item,
 .setting-page-mask [class*="prizes-decorate"] {
+  display: revert !important;
+}
+
+/* --- 道具详情弹窗与商品弹窗：恢复弹窗内道具卡片与预览 --- */
+/* .modal-body.kprop-detail-dialog 与 .modal-body.goods-modal 均独立于 .setting-page 树之外 */
+.modal-body.kprop-detail-dialog .prop-image-layer,
+.modal-body.kprop-detail-dialog .prop-icon,
+.modal-body.kprop-detail-dialog .prop-item,
+.modal-body.kprop-detail-dialog .prop-item-img-bg,
+.modal-body.kprop-detail-dialog .action-prop-list,
+.modal-body.kprop-detail-dialog .action-prop-item,
+.modal-body.kprop-detail-dialog .action-props-box,
+.modal-body.kprop-detail-dialog .goods-prop,
+.modal-body.kprop-detail-dialog .kprop-goods,
+.modal-body.kprop-detail-dialog .action-prop-img,
+.modal-body.kprop-detail-dialog .image-bg-layer,
+.modal-body.kprop-detail-dialog .image-contont-layer,
+.modal-body.goods-modal .prop-image-layer,
+.modal-body.goods-modal .prop-icon,
+.modal-body.goods-modal .prop-item,
+.modal-body.goods-modal .prop-item-img-bg,
+.modal-body.goods-modal .action-prop-list,
+.modal-body.goods-modal .action-prop-item,
+.modal-body.goods-modal .action-props-box,
+.modal-body.goods-modal .goods-prop,
+.modal-body.goods-modal .kprop-goods,
+.modal-body.goods-modal .action-prop-img,
+.modal-body.goods-modal .image-bg-layer,
+.modal-body.goods-modal .image-contont-layer {
   display: revert !important;
 }
 
