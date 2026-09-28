@@ -259,15 +259,15 @@ namespace KOOKPurifier.GUI
                 {
                     foreach (string mapFile in Directory.GetFiles(tempSrcDir, "*.map", SearchOption.AllDirectories))
                     {
-                        try { File.Delete(mapFile); } catch { }
+                        try { File.Delete(mapFile); } catch (Exception exMap) { log("[警告] 删除 map 文件失败: " + exMap.Message); }
                     }
                     string expDir = Path.Combine(buildDir, "exp");
                     if (Directory.Exists(expDir))
                     {
-                        try { Directory.Delete(expDir, true); } catch { }
+                        try { Directory.Delete(expDir, true); } catch (Exception exExp) { log("[警告] 删除 exp 目录失败: " + exExp.Message); }
                     }
                 }
-                catch { }
+                catch (Exception exCleanup) { log("[警告] 清理冗余文件时发生异常: " + exCleanup.Message); }
 
                 // 6. 打包重装 app.asar
                 log("[信息] 正在重新打包 app.asar ...");
@@ -298,7 +298,7 @@ namespace KOOKPurifier.GUI
                 log("[错误] 修补过程中发生异常: " + ex.Message);
                 if (Directory.Exists(tempSrcDir))
                 {
-                    try { Directory.Delete(tempSrcDir, true); } catch { }
+                    try { Directory.Delete(tempSrcDir, true); } catch (Exception exTemp) { log("[警告] 清理临时目录失败: " + exTemp.Message); }
                 }
                 return false;
             }
