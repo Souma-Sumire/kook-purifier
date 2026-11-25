@@ -627,7 +627,8 @@ div.connect-info {
   display: none !important;
 }
 
-/* 组队工具：只隐藏成员列表顶部的招募摘要，保留其余成员列表 */
+/* 组队工具：标题栏入口按钮与成员列表顶部的招募摘要，保留其余成员列表 */
+.team-entry,
 .team-summary {
   display: none !important;
 }
