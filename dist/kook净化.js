@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KOOK净化
 // @namespace    https://greasyfork.org/zh-CN/scripts/546095
-// @version      1.2.28
+// @version      1.2.29
 // @description  隐藏KOOK网页版广告，替换入场音效，禁用主播模式进程检测
 // @author       KOOK Purifier
 // @match        https://www.kookapp.cn/*
@@ -1652,6 +1652,11 @@ div.connect-info {
 }
 
 .text-message-item:has(.poke-msg-icon) {
+  display: none !important;
+}
+
+/* 聊天输入栏小游戏入口 */
+.mini-game-entry {
   display: none !important;
 }
 
