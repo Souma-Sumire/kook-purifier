@@ -22,6 +22,8 @@ namespace KOOKPurifier.GUI
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnApply = new System.Windows.Forms.Button();
             this.btnRestore = new System.Windows.Forms.Button();
+            this.lblRule = new System.Windows.Forms.Label();
+            this.lnkRetry = new System.Windows.Forms.LinkLabel();
             this.lblStatus = new System.Windows.Forms.Label();
             this.txtLog = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
@@ -77,6 +79,30 @@ namespace KOOKPurifier.GUI
             this.btnRestore.UseVisualStyleBackColor = true;
             this.btnRestore.Click += new System.EventHandler(this.btnRestore_Click);
             // 
+            // lblRule
+            // 
+            this.lblRule.AutoSize = true;
+            this.lblRule.Font = new System.Drawing.Font("微软雅黑", 8.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.lblRule.ForeColor = System.Drawing.Color.DimGray;
+            this.lblRule.Location = new System.Drawing.Point(14, 112);
+            this.lblRule.Name = "lblRule";
+            this.lblRule.Size = new System.Drawing.Size(0, 17);
+            this.lblRule.TabIndex = 6;
+            // 
+            // lnkRetry
+            // 
+            this.lnkRetry.AutoSize = true;
+            this.lnkRetry.Font = new System.Drawing.Font("微软雅黑", 8.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.lnkRetry.LinkColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(102)))), ((int)(((byte)(204)))));
+            this.lnkRetry.Location = new System.Drawing.Point(14, 112);
+            this.lnkRetry.Name = "lnkRetry";
+            this.lnkRetry.Size = new System.Drawing.Size(38, 17);
+            this.lnkRetry.TabIndex = 7;
+            this.lnkRetry.TabStop = true;
+            this.lnkRetry.Text = "[重试]";
+            this.lnkRetry.Visible = false;
+            this.lnkRetry.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkRetry_LinkClicked);
+            // 
             // lblStatus
             // 
             this.lblStatus.AutoSize = true;
@@ -92,20 +118,22 @@ namespace KOOKPurifier.GUI
             // 
             this.txtLog.BackColor = System.Drawing.SystemColors.Window;
             this.txtLog.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtLog.Location = new System.Drawing.Point(14, 116);
+            this.txtLog.Location = new System.Drawing.Point(14, 142);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtLog.Size = new System.Drawing.Size(452, 170);
-            this.txtLog.TabIndex = 6;
+            this.txtLog.TabIndex = 8;
             this.txtLog.Visible = false;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(480, 116);
+            this.ClientSize = new System.Drawing.Size(480, 138);
+            this.Controls.Add(this.lblRule);
+            this.Controls.Add(this.lnkRetry);
             this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.txtLog);
             this.Controls.Add(this.btnRestore);
@@ -132,6 +160,8 @@ namespace KOOKPurifier.GUI
         private System.Windows.Forms.Button btnBrowse;
         private System.Windows.Forms.Button btnApply;
         private System.Windows.Forms.Button btnRestore;
+        private System.Windows.Forms.Label lblRule;
+        private System.Windows.Forms.LinkLabel lnkRetry;
         private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.TextBox txtLog;
     }

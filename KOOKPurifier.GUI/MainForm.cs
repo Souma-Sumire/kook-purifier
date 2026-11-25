@@ -8,20 +8,69 @@ namespace KOOKPurifier.GUI
 {
     public partial class MainForm : Form
     {
-        private const int COLLAPSED_HEIGHT = 116;
-        private const int EXPANDED_HEIGHT = 300;
+        private const int COLLAPSED_HEIGHT = 138;
+        private const int EXPANDED_HEIGHT = 326;
+
+        private bool _ruleUpdating;
 
         public MainForm()
         {
             InitializeComponent();
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private async void MainForm_Load(object sender, EventArgs e)
         {
             this.ClientSize = new Size(480, COLLAPSED_HEIGHT);
             txtLog.Visible = false;
             Log("欢迎使用 KOOK Purifier！");
             DetectKookDir();
+            await UpdateRulesAsync();
+        }
+
+        private void SetRuleState(string text, Color color, bool showRetry)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<string, Color, bool>(SetRuleState), text, color, showRetry);
+                return;
+            }
+
+            if (IsDisposed || Disposing) return;
+
+            lblRule.Text = text;
+            lblRule.ForeColor = color;
+            lnkRetry.Visible = showRetry;
+            lnkRetry.Left = lblRule.Right + 6;
+            lnkRetry.Top = lblRule.Top;
+        }
+
+        private async Task UpdateRulesAsync()
+        {
+            if (_ruleUpdating) return;
+
+            _ruleUpdating = true;
+            SetRuleState("正在更新规则…", Color.DimGray, false);
+
+            RulePack pack = null;
+            try
+            {
+                await Task.Run(() => { pack = RuleSync.Acquire(Log); });
+            }
+            finally
+            {
+                _ruleUpdating = false;
+            }
+
+            if (pack != null && pack.FromRemote)
+                SetRuleState("规则已是最新", Color.FromArgb(46, 125, 50), false);
+            else
+                SetRuleState("更新失败", Color.FromArgb(198, 40, 40), true);
+        }
+
+        private async void lnkRetry_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            RuleSync.ResetFailures();
+            await UpdateRulesAsync();
         }
 
         private void SetStatus(string text, Color? color = null)

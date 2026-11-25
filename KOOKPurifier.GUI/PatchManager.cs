@@ -252,7 +252,11 @@ namespace KOOKPurifier.GUI
                 // 4. 部署静态资源与注入 HTML
                 string buildDir = Path.Combine(tempSrcDir, "webapp", "build");
                 if (Directory.Exists(buildDir))
-                    PatchWebapp(buildDir, options, log);
+                {
+                    log("[信息] 正在获取拦截规则 ...");
+                    RulePack rules = RuleSync.Acquire(log);
+                    PatchWebapp(buildDir, options, rules, log);
+                }
 
                 // 5. 清理冗余调试文件与广告页面瘦身
                 try
@@ -533,25 +537,25 @@ try {
             log("[信息] 主进程注入 DevTools 解锁逻辑: " + mainEntryRelative);
         }
 
-        private static void PatchWebapp(string buildDir, PatchOptions options, Action<string> log)
+        private static void PatchWebapp(string buildDir, PatchOptions options, RulePack rules, Action<string> log)
         {
             Assembly asm = Assembly.GetExecutingAssembly();
 
             if (options.AdBlock)
             {
-                ExtractResource(asm, "KOOKPurifier.GUI.Resources.kook-adblock.css", Path.Combine(buildDir, "kook-adblock.css"));
+                DeployRuleFile(asm, rules, "kook-adblock.css", Path.Combine(buildDir, "kook-adblock.css"));
                 log("[信息] 已部署 kook-adblock.css");
             }
 
             if (options.Enhance)
             {
-                ExtractResource(asm, "KOOKPurifier.GUI.Resources.kook-enhance.js", Path.Combine(buildDir, "kook-enhance.js"));
+                DeployRuleFile(asm, rules, "kook-enhance.js", Path.Combine(buildDir, "kook-enhance.js"));
                 log("[信息] 已部署 kook-enhance.js");
             }
 
             if (options.NoStreamer)
             {
-                ExtractResource(asm, "KOOKPurifier.GUI.Resources.kook-no-streamer-mode.js", Path.Combine(buildDir, "kook-no-streamer-mode.js"));
+                DeployRuleFile(asm, rules, "kook-no-streamer-mode.js", Path.Combine(buildDir, "kook-no-streamer-mode.js"));
                 log("[信息] 已部署 kook-no-streamer-mode.js");
             }
 
@@ -613,6 +617,31 @@ try {
                     }
                 }
             }
+        }
+
+        private static void DeployRuleFile(Assembly asm, RulePack rules, string fileName, string destPath)
+        {
+            string localPath;
+            if (rules != null && rules.LocalFiles.TryGetValue(fileName, out localPath) && File.Exists(localPath))
+            {
+                File.Copy(localPath, destPath, true);
+                return;
+            }
+
+            RuleFile rule = null;
+            foreach (var item in RuleSync.RuleFiles)
+            {
+                if (string.Equals(item.FileName, fileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    rule = item;
+                    break;
+                }
+            }
+
+            if (rule == null)
+                throw new Exception("未知规则文件: " + fileName);
+
+            ExtractResource(asm, rule.ResourceName, destPath);
         }
 
         private static void ExtractResource(Assembly asm, string resourceName, string destPath)

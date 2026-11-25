@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="..\src\kook-adblock.css">
       <Link>Resources\kook-adblock.css</Link>
       <LogicalName>KOOKPurifier.GUI.Resources.kook-adblock.css</LogicalName>
