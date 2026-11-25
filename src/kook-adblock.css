@@ -622,6 +622,11 @@ div.connect-info {
   display: none !important;
 }
 
+/* 聊天输入栏小游戏入口 */
+.mini-game-entry {
+  display: none !important;
+}
+
 .activity-list-header,
 .custom-activity-header-action,
 .custom-activity-header-add-btn {
