@@ -72,6 +72,7 @@ namespace KOOKPurifier.GUI
         };
 
         private const string GitHubBase = "https://raw.githubusercontent.com/Souma-Sumire/kook-purifier/main/src/";
+        private const string GitHubProxyBase = "https://gh-proxy.com/raw.githubusercontent.com/Souma-Sumire/kook-purifier/main/src/";
         private const string JsDelivrBase = "https://cdn.jsdelivr.net/gh/Souma-Sumire/kook-purifier@main/src/";
 
         private const int RequestTimeoutMs = 5000;
@@ -141,6 +142,14 @@ namespace KOOKPurifier.GUI
                 var previous = LoadCached();
                 bool changed = previous == null || !string.Equals(previous.Version, version, StringComparison.OrdinalIgnoreCase);
 
+                // jsDelivr 的 main 分支缓存会滞后数小时，内容与缓存不一致时以缓存为准，
+                // 否则一次净化就可能把刚同步的新规则冲回旧版
+                if (source == JsDelivrBase && previous != null && changed)
+                {
+                    log("[警告] jsDelivr 返回的规则 " + version + " 与本地缓存 " + previous.Version + " 不一致（该线路有分支缓存），继续使用缓存");
+                    return previous;
+                }
+
                 var pack = new RulePack
                 {
                     Version = version,
@@ -185,8 +194,9 @@ namespace KOOKPurifier.GUI
         {
             var list = new List<string>();
 
-            // GitHub 直连取最新提交，jsDelivr 作为国内可达的备用线路（分支缓存可能滞后）
-            foreach (string source in new[] { GitHubBase, JsDelivrBase })
+            // GitHub 直连取最新提交；国内直连不通时走 gh-proxy 实时反代；jsDelivr 放最后，
+            // 它对 main 分支有数小时缓存，命中时会把旧规则当成最新下发
+            foreach (string source in new[] { GitHubBase, GitHubProxyBase, JsDelivrBase })
             {
                 if (!IsCoolingDown(source))
                     list.Add(source);
