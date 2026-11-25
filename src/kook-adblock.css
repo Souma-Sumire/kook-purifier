@@ -627,6 +627,11 @@ div.connect-info {
   display: none !important;
 }
 
+/* 组队工具：只隐藏成员列表顶部的招募摘要，保留其余成员列表 */
+.team-summary {
+  display: none !important;
+}
+
 .activity-list-header,
 .custom-activity-header-action,
 .custom-activity-header-add-btn {
