@@ -635,16 +635,12 @@
       '  align-items: center;' +
       '  padding: 6px 0;' +
       '  border-bottom: 1px solid #272a30;' +
-      '  cursor: pointer;' +
       '  color: #dcdfe6;' +
       '  font-size: 13px;' +
       '  font-weight: 500;' +
       '}' +
-      '.kp-panel-item:last-of-type {' +
+      '.kp-panel-item:has(+ .kp-panel-footer) {' +
       '  border-bottom: none;' +
-      '}' +
-      '.kp-panel-item:hover {' +
-      '  color: #ffffff;' +
       '}' +
       '.kp-item-info {' +
       '  display: flex;' +
@@ -740,17 +736,17 @@
     var isElectron = isElectronApp();
 
     var devToolsHtml = isElectron
-      ? '<label class="kp-panel-item">' +
+      ? '<div class="kp-panel-item">' +
           '<div class="kp-item-info"><span>开发者工具 (F12)</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="enableDevTools" class="kp-switch"' + (currentConfig.enableDevTools ? ' checked' : '') + ' />' +
-        '</label>'
+        '</div>'
       : '';
 
     var noStreamerHtml = isElectron
-      ? '<label class="kp-panel-item">' +
+      ? '<div class="kp-panel-item">' +
           '<div class="kp-item-info"><span>主播检测拦截</span><span class="kp-badge kp-badge-restart">需重启</span></div>' +
           '<input type="checkbox" data-key="noStreamer" class="kp-switch"' + (currentConfig.noStreamer ? ' checked' : '') + ' />' +
-        '</label>'
+        '</div>'
       : '';
 
     var footerNote = isElectron
@@ -770,27 +766,27 @@
         '<div class="kp-panel-header">' +
           '<span>净化功能设置</span>' +
         '</div>' +
-        '<label class="kp-panel-item">' +
+        '<div class="kp-panel-item">' +
           '<div class="kp-item-info"><span>原生提示音效</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="replaceJoinSound" class="kp-switch"' + (currentConfig.replaceJoinSound ? ' checked' : '') + ' />' +
-        '</label>' +
-        '<label class="kp-panel-item">' +
+        '</div>' +
+        '<div class="kp-panel-item">' +
           '<div class="kp-item-info"><span>广告推广拦截</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="blockAds" class="kp-switch"' + (currentConfig.blockAds ? ' checked' : '') + ' />' +
-        '</label>' +
-        '<label class="kp-panel-item">' +
+        '</div>' +
+        '<div class="kp-panel-item">' +
           '<div class="kp-item-info"><span>数据上报拦截</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="blockTelemetry" class="kp-switch"' + (currentConfig.blockTelemetry ? ' checked' : '') + ' />' +
-        '</label>' +
-        '<label class="kp-panel-item">' +
+        '</div>' +
+        '<div class="kp-panel-item">' +
           '<div class="kp-item-info"><span>屏蔽发现页</span><span class="kp-badge kp-badge-instant">即时</span></div>' +
           '<input type="checkbox" data-key="skipDiscoverOnStartup" class="kp-switch"' + (currentConfig.skipDiscoverOnStartup ? ' checked' : '') + ' />' +
-        '</label>' +
+        '</div>' +
         devToolsHtml +
-        '<label class="kp-panel-item">' +
+        '<div class="kp-panel-item">' +
           '<div class="kp-item-info"><span>VIP装扮净化</span><span class="kp-badge kp-badge-refresh">需刷新</span></div>' +
           '<input type="checkbox" data-key="purifyVip" class="kp-switch"' + (currentConfig.purifyVip ? ' checked' : '') + ' />' +
-        '</label>' +
+        '</div>' +
         noStreamerHtml +
         '<div class="kp-panel-footer">' +
           '<div class="kp-footer-note">' + footerNote + '</div>' +
